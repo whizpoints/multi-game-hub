@@ -1,0 +1,108 @@
+<<<<<<< SEARCH
+  function handleRollDice(targetUuid) {
+    if (monopolyState.status !== 'PLAYING') return;
+    const player = monopolyState.players[targetUuid];
+    if (!player || player.debtState || player.pendingAction) return;
+
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    let isDouble = (d1 === d2);
+    const steps = d1 + d2;
+    player.lastRoll = steps;
+
+    if (player.inJail) {
+        if (isDouble) {
+            player.inJail = false;
+        } else {
+            monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+            nextTurn();
+            return;
+        }
+    }
+
+    if (isDouble) {
+        player.doublesCount++;
+        if (player.doublesCount === 3) {
+            player.position = 10;
+            player.inJail = true;
+            player.doublesCount = 0;
+            monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+            monopolyIo.emit('gameState', monopolyState);
+            setTimeout(() => {
+                monopolyIo.emit('systemMessage', `${player.username} went to jail for 3 doubles!`);
+                nextTurn();
+            }, 600 + 400 + 100);
+            return;
+        }
+    } else {
+        player.doublesCount = 0;
+    }
+=======
+  function handleRollDice(targetUuid) {
+    if (monopolyState.status !== 'PLAYING') return;
+    const player = monopolyState.players[targetUuid];
+    if (!player || player.debtState || player.pendingAction) return;
+
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    let isDouble = (d1 === d2);
+    const steps = d1 + d2;
+    player.lastRoll = steps;
+
+    const wasInJail = player.inJail;
+
+    if (player.inJail) {
+        if (isDouble) {
+            player.inJail = false;
+            player.jailTurns = 0;
+            monopolyIo.emit('systemMessage', `${player.username} rolled doubles and got out of jail!`);
+        } else {
+            player.jailTurns = (player.jailTurns || 0) + 1;
+            if (player.jailTurns >= 3) {
+                if (player.cash >= 50) {
+                    player.cash -= 50;
+                    player.inJail = false;
+                    player.jailTurns = 0;
+                    monopolyIo.emit('systemMessage', `${player.username} served 3 turns in jail, paid $50, and got out.`);
+                } else {
+                    monopolyIo.emit('systemMessage', `${player.username} could not pay $50 to leave jail!`);
+                    player.debtState = { type: 'jail_fine', amount: 50, creditor: null };
+                    monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                    monopolyIo.emit('gameState', monopolyState);
+                    return;
+                }
+            } else {
+                monopolyIo.emit('systemMessage', `${player.username} did not roll doubles and stays in jail (${player.jailTurns}/3).`);
+                monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                nextTurn();
+                return;
+            }
+        }
+    }
+
+    if (isDouble) {
+        if (wasInJail) {
+            // Rules say: If you roll doubles to get out of jail, you move but don't get another turn.
+            player.doublesCount = 0;
+            // Temporarily set isDouble to false so endTurnOrRollAgain moves to next turn
+            isDouble = false;
+        } else {
+            player.doublesCount++;
+            if (player.doublesCount === 3) {
+                player.position = 10;
+                player.inJail = true;
+                player.jailTurns = 0;
+                player.doublesCount = 0;
+                monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                monopolyIo.emit('gameState', monopolyState);
+                setTimeout(() => {
+                    monopolyIo.emit('systemMessage', `${player.username} went to jail for 3 doubles!`);
+                    nextTurn();
+                }, 600 + 400 + 100);
+                return;
+            }
+        }
+    } else {
+        player.doublesCount = 0;
+    }
+>>>>>>> REPLACE

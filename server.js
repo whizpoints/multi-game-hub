@@ -1046,16 +1046,29 @@ function endAuction() {
     } else if (card.action === 'go_jail') {
         player.position = 10;
         player.inJail = true;
+        player.jailTurns = 0;
     } else if (card.action.startsWith('pay_all')) {
         const amt = card.amount || 50;
         let totalPaid = 0;
         monopolyState.turnOrder.forEach(uid => {
-            if (uid !== uuid) {
-                monopolyState.players[uid].cash += amt;
+            if (uid !== uuid && monopolyState.players[uid]) {
                 totalPaid += amt;
             }
         });
-        player.cash -= totalPaid;
+
+        if (player.cash >= totalPaid) {
+            player.cash -= totalPaid;
+            monopolyState.turnOrder.forEach(uid => {
+                if (uid !== uuid && monopolyState.players[uid]) {
+                    monopolyState.players[uid].cash += amt;
+                }
+            });
+        } else {
+            // Put into debt, though this is tricky to map to a single creditor. We'll map it to null (bank) for simplicity
+            // or distribute it if they can pay. For now, simple bank debt.
+            monopolyIo.emit('systemMessage', `${player.username} does not have enough cash to pay all players!`);
+            player.debtState = { type: 'pay_all', amount: totalPaid, creditor: null, payAllAmount: amt };
+        }
     } else if (card.action.startsWith('collect_from_all')) {
         const amt = card.amount || 10;
         let totalCollected = 0;
@@ -1081,11 +1094,21 @@ function endAuction() {
             }
         });
         const total = (houses * 40) + (hotels * 100);
-        player.cash -= total;
+        if (player.cash >= total) {
+            player.cash -= total;
+        } else {
+            monopolyIo.emit('systemMessage', `${player.username} does not have enough cash for street repairs!`);
+            player.debtState = { type: 'street_repairs', amount: total, creditor: null };
+        }
     } else if (card.action.startsWith('pay_')) {
         const amt = parseInt(card.action.split('_')[1], 10);
-        player.cash -= amt;
-        } else if (card.action.startsWith('collect_')) {
+        if (player.cash >= amt) {
+            player.cash -= amt;
+        } else {
+            monopolyIo.emit('systemMessage', `${player.username} does not have enough cash to pay!`);
+            player.debtState = { type: 'card_pay', amount: amt, creditor: null };
+        }
+    } else if (card.action.startsWith('collect_')) {
         const amt = parseInt(card.action.split('_')[1], 10);
         player.cash += amt;
     }
@@ -1268,6 +1291,7 @@ monopolyIo.on('connection', (socket) => {
                 if (player.cash >= 50) {
                     player.cash -= 50;
                     player.inJail = false;
+                    player.jailTurns = 0;
                     monopolyIo.emit('systemMessage', `${player.username} paid $50 to leave jail.`);
                     monopolyIo.emit('gameState', monopolyState);
                 } else {
@@ -1393,6 +1417,7 @@ monopolyIo.on('connection', (socket) => {
         if (player && player.inJail && player.getOutJailFree > 0) {
             player.getOutJailFree -= 1;
             player.inJail = false;
+            player.jailTurns = 0;
             monopolyIo.emit('systemMessage', `${player.username} used a Get Out of Jail Free card!`);
             monopolyIo.emit('gameState', monopolyState);
         }
@@ -1440,6 +1465,104 @@ monopolyIo.on('connection', (socket) => {
     }
 });
 
+socket.on('declareBankruptcy', () => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player || !player.debtState) return;
+
+    monopolyIo.emit('systemMessage', `${player.username} has declared BANKRUPTCY!`);
+
+    // Transfer assets to creditor or bank
+    const creditor = player.debtState.creditor;
+    const boardData = require('./public/monopoly/boardData.js');
+
+    Object.keys(monopolyState.properties).forEach(tileIndex => {
+        const prop = monopolyState.properties[tileIndex];
+        if (prop.owner === uuid) {
+            if (creditor && monopolyState.players[creditor]) {
+                prop.owner = creditor;
+                // If it was mortgaged, it stays mortgaged, and the creditor will have to unmortgage it later
+                monopolyIo.emit('systemMessage', `${monopolyState.players[creditor].username} receives ${boardData[tileIndex].name}.`);
+            } else {
+                // Returns to bank
+                delete monopolyState.properties[tileIndex];
+                monopolyIo.emit('systemMessage', `${boardData[tileIndex].name} returns to the bank.`);
+            }
+        }
+    });
+
+    if (creditor && monopolyState.players[creditor]) {
+        monopolyState.players[creditor].cash += player.cash;
+    }
+
+    player.cash = 0;
+
+    // Remove from game
+    monopolyState.turnOrder = monopolyState.turnOrder.filter(id => id !== uuid);
+    delete monopolyState.players[uuid];
+
+    if (monopolyState.turnOrder.length <= 1) {
+        monopolyState.status = 'FINISHED';
+        if (monopolyState.turnOrder.length === 1) {
+            const winner = monopolyState.players[monopolyState.turnOrder[0]];
+            monopolyIo.emit('systemMessage', `GAME OVER! ${winner.username} wins!`);
+        }
+    } else {
+        // Fix turn index if necessary
+        if (monopolyState.currentTurnIndex >= monopolyState.turnOrder.length) {
+            monopolyState.currentTurnIndex = 0;
+        }
+        nextTurn();
+    }
+    monopolyIo.emit('gameState', monopolyState);
+});
+
+socket.on('payDebt', () => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player || !player.debtState) return;
+
+    if (player.cash >= player.debtState.amount) {
+        player.cash -= player.debtState.amount;
+        if (player.debtState.creditor && monopolyState.players[player.debtState.creditor]) {
+            monopolyState.players[player.debtState.creditor].cash += player.debtState.amount;
+        } else if (player.debtState.type === 'pay_all') {
+            const amt = player.debtState.payAllAmount;
+            monopolyState.turnOrder.forEach(uid => {
+                if (uid !== uuid && monopolyState.players[uid]) {
+                    monopolyState.players[uid].cash += amt;
+                }
+            });
+        }
+
+        monopolyIo.emit('systemMessage', `${player.username} successfully paid off their debt of $${player.debtState.amount}.`);
+        player.debtState = false;
+        monopolyIo.emit('gameState', monopolyState);
+
+        // Wait, what should happen next? End turn?
+        // If they just landed, they already ended turn.
+        // Wait, we didn't end turn if they had debt. We need to call endTurnOrRollAgain.
+        setTimeout(endTurnOrRollAgain, 500);
+    }
+});
+
+socket.on('sellHouse', (tileIndex) => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player) return;
+    const prop = monopolyState.properties[tileIndex];
+    const tileData = boardData[tileIndex];
+
+    if (prop && (prop.owner === uuid || (monopolyState.players[prop.owner] && monopolyState.players[prop.owner].isLocal && monopolyState.players[prop.owner].hostId === uuid)) && prop.houses > 0) {
+        // Enforce even build/sell rules if we want, but for now simple sell
+        const cost = tileData.houseCost || 50;
+        player.cash += cost / 2;
+        prop.houses -= 1;
+        monopolyIo.emit('systemMessage', `${player.username} sold a house on ${tileData.name} for $${cost / 2}.`);
+        monopolyIo.emit('gameState', monopolyState);
+    }
+});
+
 socket.on('unmortgageProperty', (tileIndex) => {
     const uuid = socket.uuid;
     const player = monopolyState.players[uuid];
@@ -1471,29 +1594,58 @@ socket.on('unmortgageProperty', (tileIndex) => {
     const steps = d1 + d2;
     player.lastRoll = steps;
     
+    const wasInJail = player.inJail;
+
     if (player.inJail) {
         if (isDouble) {
             player.inJail = false;
+            player.jailTurns = 0;
+            monopolyIo.emit('systemMessage', `${player.username} rolled doubles and got out of jail!`);
         } else {
-            monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
-            nextTurn();
-            return;
+            player.jailTurns = (player.jailTurns || 0) + 1;
+            if (player.jailTurns >= 3) {
+                if (player.cash >= 50) {
+                    player.cash -= 50;
+                    player.inJail = false;
+                    player.jailTurns = 0;
+                    monopolyIo.emit('systemMessage', `${player.username} served 3 turns in jail, paid $50, and got out.`);
+                } else {
+                    monopolyIo.emit('systemMessage', `${player.username} could not pay $50 to leave jail!`);
+                    player.debtState = { type: 'jail_fine', amount: 50, creditor: null };
+                    monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                    monopolyIo.emit('gameState', monopolyState);
+                    return;
+                }
+            } else {
+                monopolyIo.emit('systemMessage', `${player.username} did not roll doubles and stays in jail (${player.jailTurns}/3).`);
+                monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                nextTurn();
+                return;
+            }
         }
     }
 
     if (isDouble) {
-        player.doublesCount++;
-        if (player.doublesCount === 3) {
-            player.position = 10;
-            player.inJail = true;
+        if (wasInJail) {
+            // Rules say: If you roll doubles to get out of jail, you move but don't get another turn.
             player.doublesCount = 0;
-            monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
-            monopolyIo.emit('gameState', monopolyState);
-            setTimeout(() => {
-                monopolyIo.emit('systemMessage', `${player.username} went to jail for 3 doubles!`);
-                nextTurn();
-            }, 600 + 400 + 100);
-            return;
+            // Temporarily set isDouble to false so endTurnOrRollAgain moves to next turn
+            isDouble = false;
+        } else {
+            player.doublesCount++;
+            if (player.doublesCount === 3) {
+                player.position = 10;
+                player.inJail = true;
+                player.jailTurns = 0;
+                player.doublesCount = 0;
+                monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                monopolyIo.emit('gameState', monopolyState);
+                setTimeout(() => {
+                    monopolyIo.emit('systemMessage', `${player.username} went to jail for 3 doubles!`);
+                    nextTurn();
+                }, 600 + 400 + 100);
+                return;
+            }
         }
     } else {
         player.doublesCount = 0;
@@ -1510,6 +1662,7 @@ socket.on('unmortgageProperty', (tileIndex) => {
     if (player.position === 30) {
         player.position = 10;
         player.inJail = true;
+        player.jailTurns = 0;
         isDouble = false; 
         sentToJail = true;
     }
@@ -1573,17 +1726,27 @@ socket.on('unmortgageProperty', (tileIndex) => {
                 }
                 
                 if (rent > 0) {
-                    player.cash -= rent;
-                    if (monopolyState.players[owner]) {
-                        monopolyState.players[owner].cash += rent;
+                    if (player.cash >= rent) {
+                        player.cash -= rent;
+                        if (monopolyState.players[owner]) {
+                            monopolyState.players[owner].cash += rent;
+                        }
+                        monopolyIo.emit('systemMessage', `${player.username} paid $${rent} rent to ${monopolyState.players[owner].username}.`);
+                    } else {
+                        monopolyIo.emit('systemMessage', `${player.username} does not have enough cash to pay rent to ${monopolyState.players[owner].username}!`);
+                        player.debtState = { type: 'rent', amount: rent, creditor: owner };
                     }
-                    monopolyIo.emit('systemMessage', `${player.username} paid ${rent} rent to ${monopolyState.players[owner].username}.`);
                 }
             }
         } else if (tileData && tileData.type === 'tax') {
             const amt = tileData.amount || 2000;
-            player.cash -= amt;
-            monopolyIo.emit('systemMessage', `${player.username} paid ${amt} in taxes.`);
+            if (player.cash >= amt) {
+                player.cash -= amt;
+                monopolyIo.emit('systemMessage', `${player.username} paid $${amt} in taxes.`);
+            } else {
+                monopolyIo.emit('systemMessage', `${player.username} does not have enough cash to pay taxes!`);
+                player.debtState = { type: 'tax', amount: amt, creditor: null };
+            }
         } else if (tileData && (tileData.type === 'chest' || tileData.type === 'chance')) {
             player.pendingAction = { type: 'draw_card', deck: tileData.type };
             monopolyIo.emit('gameState', monopolyState);

@@ -264,6 +264,7 @@ function showPropertyDetails(tile) {
         };
         
         createBtn('buy-house-btn', 'UPGRADE', '#22c55e', 'buyHouse', (idx) => socket.emit('buyHouse', idx));
+        createBtn('sell-house-btn', 'SELL HOUSE', '#ef4444', 'sellHouse', (idx) => socket.emit('sellHouse', idx));
         createBtn('mortgage-btn', 'MORTGAGE', '#ef4444', 'mortgageProp', (idx) => socket.emit('mortgageProperty', idx));
         createBtn('unmortgage-btn', 'UNMORTGAGE', '#3b82f6', 'unmortgageProp', (idx) => socket.emit('unmortgageProperty', idx));
     }
@@ -284,10 +285,12 @@ function showPropertyDetails(tile) {
     document.getElementById('pc-unmortgage').textContent = tile.unmortgageCost ? '$' + Math.round(tile.unmortgageCost) : '-';
     
     const buyHouseBtn = document.getElementById('buy-house-btn');
+    const sellHouseBtn = document.getElementById('sell-house-btn');
     const mortgageBtn = document.getElementById('mortgage-btn');
     const unmortgageBtn = document.getElementById('unmortgage-btn');
     
     buyHouseBtn.style.display = 'none';
+    sellHouseBtn.style.display = 'none';
     mortgageBtn.style.display = 'none';
     unmortgageBtn.style.display = 'none';
     
@@ -308,6 +311,10 @@ function showPropertyDetails(tile) {
                     if (tile.type === 'property' && prop.houses < 5) {
                         buyHouseBtn.style.display = 'block';
                         buyHouseBtn.textContent = 'UPGRADE ($' + (tile.houseCost || 50) + ')';
+                    }
+                    if (tile.type === 'property' && prop.houses > 0) {
+                        sellHouseBtn.style.display = 'block';
+                        sellHouseBtn.textContent = 'SELL HOUSE (+$' + (tile.houseCost || 50)/2 + ')';
                     }
                     if (prop.houses === 0) {
                         mortgageBtn.style.display = 'block';
@@ -583,34 +590,79 @@ function updateControls(state) {
     }
     
     if (currentTurnUuid === myUuid || (state.host === myUuid && state.players[currentTurnUuid] && state.players[currentTurnUuid].isLocal)) {
-        if (state.players[currentTurnUuid].inJail) {
-            rollBtn.textContent = 'ROLL FOR DOUBLES (JAIL)';
-            rollBtn.style.background = '#eab308';
-            if (!window.hasPromptedJailThisTurn && currentTurnUuid === myUuid) {
-                window.hasPromptedJailThisTurn = true;
+        if (state.players[currentTurnUuid].debtState) {
+            rollBtn.textContent = 'YOU ARE IN DEBT! DECLARE BANKRUPTCY';
+            rollBtn.style.background = '#ef4444';
+
+            // Add a pay debt button if they can afford it
+            let payBtn = document.getElementById('pay-debt-btn');
+            if (!payBtn) {
+                payBtn = document.createElement('button');
+                payBtn.id = 'pay-debt-btn';
+                payBtn.className = 'glass-btn';
+                payBtn.style.background = '#22c55e';
+                payBtn.style.marginLeft = '10px';
+                payBtn.onclick = () => socket.emit('payDebt');
+                rollBtn.parentNode.insertBefore(payBtn, rollBtn.nextSibling);
+            }
+            payBtn.textContent = `PAY $${state.players[currentTurnUuid].debtState.amount}`;
+            payBtn.style.display = 'inline-block';
+            payBtn.disabled = state.players[currentTurnUuid].cash < state.players[currentTurnUuid].debtState.amount;
+            payBtn.style.opacity = payBtn.disabled ? '0.5' : '1';
+
+            rollBtn.onclick = () => {
                 Swal.fire({
-                    title: 'You are in Jail!',
-                    text: 'Pay $50 to get out now, or try to roll doubles.',
+                    title: 'Declare Bankruptcy?',
+                    text: 'Are you sure? You will lose all your properties and be removed from the game.',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Pay $50',
-                    cancelButtonText: 'Roll Doubles',
+                    confirmButtonText: 'Declare Bankruptcy',
+                    confirmButtonColor: '#ef4444',
                     customClass: { popup: 'glass-panel' }
-                }).then((res) => {
+                }).then(res => {
                     if (res.isConfirmed) {
-                        socket.emit('payJailFine');
-                    } else if (res.dismiss === Swal.DismissReason.cancel) {
-                        socket.emit('rollDice');
+                        socket.emit('declareBankruptcy');
                     }
                 });
-            }
+            };
         } else {
-            window.hasPromptedJailThisTurn = false;
-            rollBtn.textContent = 'ROLL DICE';
-            rollBtn.style.background = '#16a34a'; 
+            const payBtn = document.getElementById('pay-debt-btn');
+            if (payBtn) payBtn.style.display = 'none';
+
+            // Restore roll button default click handler
+            rollBtn.onclick = () => {
+                if (window.socket) window.socket.emit('rollDice');
+            };
+
+            if (state.players[currentTurnUuid].inJail) {
+                rollBtn.textContent = 'ROLL FOR DOUBLES (JAIL)';
+                rollBtn.style.background = '#eab308';
+                if (!window.hasPromptedJailThisTurn && currentTurnUuid === myUuid) {
+                    window.hasPromptedJailThisTurn = true;
+                    Swal.fire({
+                        title: 'You are in Jail!',
+                        text: 'Pay $50 to get out now, or try to roll doubles.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Pay $50',
+                        cancelButtonText: 'Roll Doubles',
+                        customClass: { popup: 'glass-panel' }
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            socket.emit('payJailFine');
+                        } else if (res.dismiss === Swal.DismissReason.cancel) {
+                            socket.emit('rollDice');
+                        }
+                    });
+                }
+            } else {
+                window.hasPromptedJailThisTurn = false;
+                rollBtn.textContent = 'ROLL DICE';
+                rollBtn.style.background = '#16a34a';
+            }
+            rollBtn.style.opacity = '1';
+            rollBtn.disabled = false;
         }
-        rollBtn.style.opacity = '1';
-        rollBtn.disabled = false;
     } else {
         rollBtn.textContent = 'OPPONENT TURN';
         rollBtn.style.opacity = '0.5';

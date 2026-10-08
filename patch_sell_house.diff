@@ -1,0 +1,32 @@
+<<<<<<< SEARCH
+socket.on('unmortgageProperty', (tileIndex) => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player) return;
+    const prop = monopolyState.properties[tileIndex];
+    const tileData = boardData[tileIndex];
+=======
+socket.on('sellHouse', (tileIndex) => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player) return;
+    const prop = monopolyState.properties[tileIndex];
+    const tileData = boardData[tileIndex];
+
+    if (prop && (prop.owner === uuid || (monopolyState.players[prop.owner] && monopolyState.players[prop.owner].isLocal && monopolyState.players[prop.owner].hostId === uuid)) && prop.houses > 0) {
+        // Enforce even build/sell rules if we want, but for now simple sell
+        const cost = tileData.houseCost || 50;
+        player.cash += cost / 2;
+        prop.houses -= 1;
+        monopolyIo.emit('systemMessage', `${player.username} sold a house on ${tileData.name} for $${cost / 2}.`);
+        monopolyIo.emit('gameState', monopolyState);
+    }
+});
+
+socket.on('unmortgageProperty', (tileIndex) => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player) return;
+    const prop = monopolyState.properties[tileIndex];
+    const tileData = boardData[tileIndex];
+>>>>>>> REPLACE

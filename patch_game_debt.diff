@@ -1,0 +1,69 @@
+<<<<<<< SEARCH
+    const currentTurnUuid = state.turnOrder[state.currentTurnIndex];
+    const currentPlayer = state.players[currentTurnUuid];
+    if (document.getElementById('turn-indicator') && currentPlayer) {
+        document.getElementById('turn-indicator').textContent = (currentTurnUuid === myUuid ? 'YOUR TURN' : currentPlayer.username + "'S TURN");
+    }
+
+    if (currentTurnUuid === myUuid || (state.host === myUuid && state.players[currentTurnUuid] && state.players[currentTurnUuid].isLocal)) {
+        if (state.players[currentTurnUuid].inJail) {
+            rollBtn.textContent = 'ROLL FOR DOUBLES (JAIL)';
+            rollBtn.style.background = '#eab308';
+            if (!window.hasPromptedJailThisTurn && currentTurnUuid === myUuid) {
+=======
+    const currentTurnUuid = state.turnOrder[state.currentTurnIndex];
+    const currentPlayer = state.players[currentTurnUuid];
+    if (document.getElementById('turn-indicator') && currentPlayer) {
+        document.getElementById('turn-indicator').textContent = (currentTurnUuid === myUuid ? 'YOUR TURN' : currentPlayer.username + "'S TURN");
+    }
+
+    if (currentTurnUuid === myUuid || (state.host === myUuid && state.players[currentTurnUuid] && state.players[currentTurnUuid].isLocal)) {
+        if (state.players[currentTurnUuid].debtState) {
+            rollBtn.textContent = 'YOU ARE IN DEBT! DECLARE BANKRUPTCY';
+            rollBtn.style.background = '#ef4444';
+
+            // Add a pay debt button if they can afford it
+            let payBtn = document.getElementById('pay-debt-btn');
+            if (!payBtn) {
+                payBtn = document.createElement('button');
+                payBtn.id = 'pay-debt-btn';
+                payBtn.className = 'glass-btn';
+                payBtn.style.background = '#22c55e';
+                payBtn.style.marginLeft = '10px';
+                payBtn.onclick = () => socket.emit('payDebt');
+                rollBtn.parentNode.insertBefore(payBtn, rollBtn.nextSibling);
+            }
+            payBtn.textContent = `PAY $${state.players[currentTurnUuid].debtState.amount}`;
+            payBtn.style.display = 'inline-block';
+            payBtn.disabled = state.players[currentTurnUuid].cash < state.players[currentTurnUuid].debtState.amount;
+            payBtn.style.opacity = payBtn.disabled ? '0.5' : '1';
+
+            rollBtn.onclick = () => {
+                Swal.fire({
+                    title: 'Declare Bankruptcy?',
+                    text: 'Are you sure? You will lose all your properties and be removed from the game.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Declare Bankruptcy',
+                    confirmButtonColor: '#ef4444',
+                    customClass: { popup: 'glass-panel' }
+                }).then(res => {
+                    if (res.isConfirmed) {
+                        socket.emit('declareBankruptcy');
+                    }
+                });
+            };
+        } else {
+            const payBtn = document.getElementById('pay-debt-btn');
+            if (payBtn) payBtn.style.display = 'none';
+
+            // Restore roll button default click handler
+            rollBtn.onclick = () => {
+                if (window.socket) window.socket.emit('rollDice');
+            };
+
+            if (state.players[currentTurnUuid].inJail) {
+                rollBtn.textContent = 'ROLL FOR DOUBLES (JAIL)';
+                rollBtn.style.background = '#eab308';
+                if (!window.hasPromptedJailThisTurn && currentTurnUuid === myUuid) {
+>>>>>>> REPLACE

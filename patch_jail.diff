@@ -1,0 +1,56 @@
+<<<<<<< SEARCH
+    if (player.inJail) {
+        if (isDouble) {
+            player.inJail = false;
+        } else {
+            monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+            nextTurn();
+            return;
+        }
+    }
+
+    if (isDouble) {
+        player.doublesCount++;
+=======
+    if (player.inJail) {
+        if (isDouble) {
+            player.inJail = false;
+            player.jailTurns = 0;
+            monopolyIo.emit('systemMessage', `${player.username} rolled doubles and got out of jail!`);
+            // The player uses this roll to move, but they don't get another turn
+            player.justRolledDouble = false;
+        } else {
+            player.jailTurns = (player.jailTurns || 0) + 1;
+            if (player.jailTurns >= 3) {
+                // Must pay 50 and then use this roll to move
+                if (player.cash >= 50) {
+                    player.cash -= 50;
+                    player.inJail = false;
+                    player.jailTurns = 0;
+                    monopolyIo.emit('systemMessage', `${player.username} served 3 turns in jail, paid $50, and got out.`);
+                } else {
+                    // Debt logic - simple bankruptcy for now, complex debt later
+                    monopolyIo.emit('systemMessage', `${player.username} could not pay $50 to leave jail and is bankrupt!`);
+                    player.debtState = true;
+                    // For now, end their turn without moving
+                    monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                    nextTurn();
+                    return;
+                }
+            } else {
+                monopolyIo.emit('systemMessage', `${player.username} did not roll doubles and stays in jail (${player.jailTurns}/3).`);
+                monopolyIo.emit('diceRolled', { d1, d2, uuid: targetUuid });
+                nextTurn();
+                return;
+            }
+        }
+    }
+
+    if (isDouble && !player.inJail) {
+        // Player only gets another turn if they didn't just get out of jail by rolling doubles
+        // Actually wait, standard rules say if you roll doubles to get out, you do NOT get another turn
+        // So we don't increment doublesCount here if they just got out of jail.
+        // Wait, if they were in jail, they already reset inJail to false above.
+        // Let's use a flag to track if they were in jail before the roll.
+    }
+>>>>>>> REPLACE

@@ -1,0 +1,39 @@
+<<<<<<< SEARCH
+                if (rent > 0) {
+                    player.cash -= rent;
+                    if (monopolyState.players[owner]) {
+                        monopolyState.players[owner].cash += rent;
+                    }
+                    monopolyIo.emit('systemMessage', `${player.username} paid ${rent} rent to ${monopolyState.players[owner].username}.`);
+                }
+            }
+        } else if (tileData && tileData.type === 'tax') {
+            const amt = tileData.amount || 2000;
+            player.cash -= amt;
+            monopolyIo.emit('systemMessage', `${player.username} paid ${amt} in taxes.`);
+        } else if (tileData && (tileData.type === 'chest' || tileData.type === 'chance')) {
+=======
+                if (rent > 0) {
+                    if (player.cash >= rent) {
+                        player.cash -= rent;
+                        if (monopolyState.players[owner]) {
+                            monopolyState.players[owner].cash += rent;
+                        }
+                        monopolyIo.emit('systemMessage', `${player.username} paid ${rent} rent to ${monopolyState.players[owner].username}.`);
+                    } else {
+                        monopolyIo.emit('systemMessage', `${player.username} does not have enough cash to pay rent to ${monopolyState.players[owner].username}!`);
+                        player.debtState = { type: 'rent', amount: rent, creditor: owner };
+                    }
+                }
+            }
+        } else if (tileData && tileData.type === 'tax') {
+            const amt = tileData.amount || 2000;
+            if (player.cash >= amt) {
+                player.cash -= amt;
+                monopolyIo.emit('systemMessage', `${player.username} paid ${amt} in taxes.`);
+            } else {
+                monopolyIo.emit('systemMessage', `${player.username} does not have enough cash to pay taxes!`);
+                player.debtState = { type: 'tax', amount: amt, creditor: null };
+            }
+        } else if (tileData && (tileData.type === 'chest' || tileData.type === 'chance')) {
+>>>>>>> REPLACE

@@ -1,0 +1,67 @@
+<<<<<<< SEARCH
+socket.on('unmortgageProperty', (tileIndex) => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player) return;
+    const prop = monopolyState.properties[tileIndex];
+    const tileData = boardData[tileIndex];
+=======
+socket.on('declareBankruptcy', () => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player || !player.debtState) return;
+
+    monopolyIo.emit('systemMessage', `${player.username} has declared BANKRUPTCY!`);
+
+    // Transfer assets to creditor or bank
+    const creditor = player.debtState.creditor;
+    const boardData = require('./public/monopoly/boardData.js');
+
+    Object.keys(monopolyState.properties).forEach(tileIndex => {
+        const prop = monopolyState.properties[tileIndex];
+        if (prop.owner === uuid) {
+            if (creditor && monopolyState.players[creditor]) {
+                prop.owner = creditor;
+                // If it was mortgaged, it stays mortgaged, and the creditor will have to unmortgage it later
+                monopolyIo.emit('systemMessage', `${monopolyState.players[creditor].username} receives ${boardData[tileIndex].name}.`);
+            } else {
+                // Returns to bank
+                delete monopolyState.properties[tileIndex];
+                monopolyIo.emit('systemMessage', `${boardData[tileIndex].name} returns to the bank.`);
+            }
+        }
+    });
+
+    if (creditor && monopolyState.players[creditor]) {
+        monopolyState.players[creditor].cash += player.cash;
+    }
+
+    player.cash = 0;
+
+    // Remove from game
+    monopolyState.turnOrder = monopolyState.turnOrder.filter(id => id !== uuid);
+    delete monopolyState.players[uuid];
+
+    if (monopolyState.turnOrder.length <= 1) {
+        monopolyState.status = 'FINISHED';
+        if (monopolyState.turnOrder.length === 1) {
+            const winner = monopolyState.players[monopolyState.turnOrder[0]];
+            monopolyIo.emit('systemMessage', `GAME OVER! ${winner.username} wins!`);
+        }
+    } else {
+        // Fix turn index if necessary
+        if (monopolyState.currentTurnIndex >= monopolyState.turnOrder.length) {
+            monopolyState.currentTurnIndex = 0;
+        }
+        nextTurn();
+    }
+    monopolyIo.emit('gameState', monopolyState);
+});
+
+socket.on('unmortgageProperty', (tileIndex) => {
+    const uuid = socket.uuid;
+    const player = monopolyState.players[uuid];
+    if (!player) return;
+    const prop = monopolyState.properties[tileIndex];
+    const tileData = boardData[tileIndex];
+>>>>>>> REPLACE
