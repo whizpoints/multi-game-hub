@@ -1,0 +1,469 @@
+[
+  {
+    "name": "GO",
+    "type": "go",
+    "reward": 2000
+  },
+  {
+    "name": "Lima",
+    "type": "property",
+    "color": "Brown",
+    "price": 600,
+    "houseCost": 500,
+    "mortgageValue": 300,
+    "unmortgageCost": 330,
+    "rent": {
+      "base": 20,
+      "house1": 100,
+      "house2": 300,
+      "house3": 900,
+      "house4": 1600,
+      "hotel": 2500
+    }
+  },
+  {
+    "name": "Community Chest",
+    "type": "chest"
+  },
+  {
+    "name": "Nairobi",
+    "type": "property",
+    "color": "Brown",
+    "price": 600,
+    "houseCost": 500,
+    "mortgageValue": 300,
+    "unmortgageCost": 330,
+    "rent": {
+      "base": 40,
+      "house1": 200,
+      "house2": 600,
+      "house3": 1800,
+      "house4": 3200,
+      "hotel": 4500
+    }
+  },
+  {
+    "name": "Income Tax",
+    "type": "tax",
+    "amount": 2000
+  },
+  {
+    "name": "North Hyperloop",
+    "type": "station",
+    "price": 2000,
+    "mortgageValue": 1000,
+    "unmortgageCost": 1100
+  },
+  {
+    "name": "Bogota",
+    "type": "property",
+    "color": "LightBlue",
+    "price": 1000,
+    "houseCost": 500,
+    "mortgageValue": 500,
+    "unmortgageCost": 550,
+    "rent": {
+      "base": 60,
+      "house1": 300,
+      "house2": 900,
+      "house3": 2700,
+      "house4": 4000,
+      "hotel": 5500
+    }
+  },
+  {
+    "name": "Chance",
+    "type": "chance"
+  },
+  {
+    "name": "Bangkok",
+    "type": "property",
+    "color": "LightBlue",
+    "price": 1000,
+    "houseCost": 500,
+    "mortgageValue": 500,
+    "unmortgageCost": 550,
+    "rent": {
+      "base": 60,
+      "house1": 300,
+      "house2": 900,
+      "house3": 2700,
+      "house4": 4000,
+      "hotel": 5500
+    }
+  },
+  {
+    "name": "Kuala Lumpur",
+    "type": "property",
+    "color": "LightBlue",
+    "price": 1200,
+    "houseCost": 500,
+    "mortgageValue": 600,
+    "unmortgageCost": 660,
+    "rent": {
+      "base": 80,
+      "house1": 400,
+      "house2": 1000,
+      "house3": 3000,
+      "house4": 4500,
+      "hotel": 6000
+    }
+  },
+  {
+    "name": "Jail / Just Visiting",
+    "type": "jail"
+  },
+  {
+    "name": "Cape Town",
+    "type": "property",
+    "color": "Pink",
+    "price": 1400,
+    "houseCost": 1000,
+    "mortgageValue": 700,
+    "unmortgageCost": 770.0000000000001,
+    "rent": {
+      "base": 100,
+      "house1": 500,
+      "house2": 1500,
+      "house3": 4500,
+      "house4": 6250,
+      "hotel": 7500
+    }
+  },
+  {
+    "name": "Solar Grid",
+    "type": "utility",
+    "price": 1500,
+    "mortgageValue": 750,
+    "unmortgageCost": 825
+  },
+  {
+    "name": "Warsaw",
+    "type": "property",
+    "color": "Pink",
+    "price": 1400,
+    "houseCost": 1000,
+    "mortgageValue": 700,
+    "unmortgageCost": 770.0000000000001,
+    "rent": {
+      "base": 100,
+      "house1": 500,
+      "house2": 1500,
+      "house3": 4500,
+      "house4": 6250,
+      "hotel": 7500
+    }
+  },
+  {
+    "name": "Santiago",
+    "type": "property",
+    "color": "Pink",
+    "price": 1600,
+    "houseCost": 1000,
+    "mortgageValue": 800,
+    "unmortgageCost": 880.0000000000001,
+    "rent": {
+      "base": 120,
+      "house1": 600,
+      "house2": 1800,
+      "house3": 5000,
+      "house4": 7000,
+      "hotel": 9000
+    }
+  },
+  {
+    "name": "East Hyperloop",
+    "type": "station",
+    "price": 2000,
+    "mortgageValue": 1000,
+    "unmortgageCost": 1100
+  },
+  {
+    "name": "Taipei",
+    "type": "property",
+    "color": "Orange",
+    "price": 1800,
+    "houseCost": 1000,
+    "mortgageValue": 900,
+    "unmortgageCost": 990.0000000000001,
+    "rent": {
+      "base": 140,
+      "house1": 700,
+      "house2": 2000,
+      "house3": 5500,
+      "house4": 7500,
+      "hotel": 9500
+    }
+  },
+  {
+    "name": "Community Chest",
+    "type": "chest"
+  },
+  {
+    "name": "Manila",
+    "type": "property",
+    "color": "Orange",
+    "price": 1800,
+    "houseCost": 1000,
+    "mortgageValue": 900,
+    "unmortgageCost": 990.0000000000001,
+    "rent": {
+      "base": 140,
+      "house1": 700,
+      "house2": 2000,
+      "house3": 5500,
+      "house4": 7500,
+      "hotel": 9500
+    }
+  },
+  {
+    "name": "Ho Chi Minh",
+    "type": "property",
+    "color": "Orange",
+    "price": 2000,
+    "houseCost": 1000,
+    "mortgageValue": 1000,
+    "unmortgageCost": 1100,
+    "rent": {
+      "base": 160,
+      "house1": 800,
+      "house2": 2200,
+      "house3": 6000,
+      "house4": 8000,
+      "hotel": 10000
+    }
+  },
+  {
+    "name": "Free Parking",
+    "type": "free_parking"
+  },
+  {
+    "name": "Seoul",
+    "type": "property",
+    "color": "Red",
+    "price": 2200,
+    "houseCost": 1500,
+    "mortgageValue": 1100,
+    "unmortgageCost": 1210,
+    "rent": {
+      "base": 180,
+      "house1": 900,
+      "house2": 2500,
+      "house3": 7000,
+      "house4": 8750,
+      "hotel": 10500
+    }
+  },
+  {
+    "name": "Chance",
+    "type": "chance"
+  },
+  {
+    "name": "Sao Paulo",
+    "type": "property",
+    "color": "Red",
+    "price": 2200,
+    "houseCost": 1500,
+    "mortgageValue": 1100,
+    "unmortgageCost": 1210,
+    "rent": {
+      "base": 180,
+      "house1": 900,
+      "house2": 2500,
+      "house3": 7000,
+      "house4": 8750,
+      "hotel": 10500
+    }
+  },
+  {
+    "name": "Mumbai",
+    "type": "property",
+    "color": "Red",
+    "price": 2400,
+    "houseCost": 1500,
+    "mortgageValue": 1200,
+    "unmortgageCost": 1320,
+    "rent": {
+      "base": 200,
+      "house1": 1000,
+      "house2": 3000,
+      "house3": 7500,
+      "house4": 9250,
+      "hotel": 11000
+    }
+  },
+  {
+    "name": "South Hyperloop",
+    "type": "station",
+    "price": 2000,
+    "mortgageValue": 1000,
+    "unmortgageCost": 1100
+  },
+  {
+    "name": "Singapore",
+    "type": "property",
+    "color": "Yellow",
+    "price": 2600,
+    "houseCost": 1500,
+    "mortgageValue": 1300,
+    "unmortgageCost": 1430.0000000000002,
+    "rent": {
+      "base": 220,
+      "house1": 1100,
+      "house2": 3300,
+      "house3": 8000,
+      "house4": 9750,
+      "hotel": 11500
+    }
+  },
+  {
+    "name": "Shanghai",
+    "type": "property",
+    "color": "Yellow",
+    "price": 2600,
+    "houseCost": 1500,
+    "mortgageValue": 1300,
+    "unmortgageCost": 1430.0000000000002,
+    "rent": {
+      "base": 220,
+      "house1": 1100,
+      "house2": 3300,
+      "house3": 8000,
+      "house4": 9750,
+      "hotel": 11500
+    }
+  },
+  {
+    "name": "Quantum Internet",
+    "type": "utility",
+    "price": 1500,
+    "mortgageValue": 750,
+    "unmortgageCost": 825
+  },
+  {
+    "name": "Dubai",
+    "type": "property",
+    "color": "Yellow",
+    "price": 2800,
+    "houseCost": 1500,
+    "mortgageValue": 1400,
+    "unmortgageCost": 1540.0000000000002,
+    "rent": {
+      "base": 240,
+      "house1": 1200,
+      "house2": 3600,
+      "house3": 8500,
+      "house4": 10250,
+      "hotel": 12000
+    }
+  },
+  {
+    "name": "Go to Jail",
+    "type": "go_to_jail"
+  },
+  {
+    "name": "Los Angeles",
+    "type": "property",
+    "color": "Green",
+    "price": 3000,
+    "houseCost": 2000,
+    "mortgageValue": 1500,
+    "unmortgageCost": 1650.0000000000002,
+    "rent": {
+      "base": 260,
+      "house1": 1300,
+      "house2": 3900,
+      "house3": 9000,
+      "house4": 11000,
+      "hotel": 12750
+    }
+  },
+  {
+    "name": "Paris",
+    "type": "property",
+    "color": "Green",
+    "price": 3000,
+    "houseCost": 2000,
+    "mortgageValue": 1500,
+    "unmortgageCost": 1650.0000000000002,
+    "rent": {
+      "base": 260,
+      "house1": 1300,
+      "house2": 3900,
+      "house3": 9000,
+      "house4": 11000,
+      "hotel": 12750
+    }
+  },
+  {
+    "name": "Community Chest",
+    "type": "chest"
+  },
+  {
+    "name": "London",
+    "type": "property",
+    "color": "Green",
+    "price": 3200,
+    "houseCost": 2000,
+    "mortgageValue": 1600,
+    "unmortgageCost": 1760.0000000000002,
+    "rent": {
+      "base": 280,
+      "house1": 1500,
+      "house2": 4500,
+      "house3": 10000,
+      "house4": 12000,
+      "hotel": 14000
+    }
+  },
+  {
+    "name": "West Hyperloop",
+    "type": "station",
+    "price": 2000,
+    "mortgageValue": 1000,
+    "unmortgageCost": 1100
+  },
+  {
+    "name": "Chance",
+    "type": "chance"
+  },
+  {
+    "name": "New York City",
+    "type": "property",
+    "color": "DarkBlue",
+    "price": 3500,
+    "houseCost": 2000,
+    "mortgageValue": 1750,
+    "unmortgageCost": 1925.0000000000002,
+    "rent": {
+      "base": 350,
+      "house1": 1750,
+      "house2": 5000,
+      "house3": 11000,
+      "house4": 13000,
+      "hotel": 15000
+    }
+  },
+  {
+    "name": "Luxury Tax",
+    "type": "tax",
+    "amount": 1000
+  },
+  {
+    "name": "Tokyo",
+    "type": "property",
+    "color": "DarkBlue",
+    "price": 4000,
+    "houseCost": 2000,
+    "mortgageValue": 2000,
+    "unmortgageCost": 2200,
+    "rent": {
+      "base": 500,
+      "house1": 2000,
+      "house2": 6000,
+      "house3": 14000,
+      "house4": 17000,
+      "hotel": 20000
+    }
+  }
+]

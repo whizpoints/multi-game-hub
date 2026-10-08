@@ -1,0 +1,41 @@
+Box No.,Type,Name,Color Group,Buy Price,House/Hotel Cost,Base Rent,Rent (1 House),Rent (2 Houses),Rent (3 Houses),Rent (4 Houses),Rent (Hotel),Mortgage Value,Unmortgage Cost
+0,GO,GO,,,,,,,,,,,
+1,Property,Lima,Brown,600,500,20,100,300,900,1600,2500,300,330
+2,Chest,Community Chest,,,,,,,,,,,
+3,Property,Nairobi,Brown,600,500,40,200,600,1800,3200,4500,300,330
+4,Tax,Income Tax,,2000,,,,,,,,,
+5,Station,North Hyperloop,,2000,,,,,,,,1000,1100
+6,Property,Bogota,LightBlue,1000,500,60,300,900,2700,4000,5500,500,550
+7,Chance,Chance,,,,,,,,,,,
+8,Property,Bangkok,LightBlue,1000,500,60,300,900,2700,4000,5500,500,550
+9,Property,Kuala Lumpur,LightBlue,1200,500,80,400,1000,3000,4500,6000,600,660
+10,Jail,Jail / Just Visiting,,,,,,,,,,,
+11,Property,Cape Town,Pink,1400,1000,100,500,1500,4500,6250,7500,700,770
+12,Utility,Solar Grid,,1500,,,,,,,,750,825
+13,Property,Warsaw,Pink,1400,1000,100,500,1500,4500,6250,7500,700,770
+14,Property,Santiago,Pink,1600,1000,120,600,1800,5000,7000,9000,800,880
+15,Station,East Hyperloop,,2000,,,,,,,,1000,1100
+16,Property,Taipei,Orange,1800,1000,140,700,2000,5500,7500,9500,900,990
+17,Chest,Community Chest,,,,,,,,,,,
+18,Property,Manila,Orange,1800,1000,140,700,2000,5500,7500,9500,900,990
+19,Property,Ho Chi Minh,Orange,2000,1000,160,800,2200,6000,8000,10000,1000,1100
+20,Parking,Free Parking,,,,,,,,,,,
+21,Property,Seoul,Red,2200,1500,180,900,2500,7000,8750,10500,1100,1210
+22,Chance,Chance,,,,,,,,,,,
+23,Property,Sao Paulo,Red,2200,1500,180,900,2500,7000,8750,10500,1100,1210
+24,Property,Mumbai,Red,2400,1500,200,1000,3000,7500,9250,11000,1200,1320
+25,Station,South Hyperloop,,2000,,,,,,,,1000,1100
+26,Property,Singapore,Yellow,2600,1500,220,1100,3300,8000,9750,11500,1300,1430
+27,Property,Shanghai,Yellow,2600,1500,220,1100,3300,8000,9750,11500,1300,1430
+28,Utility,Quantum Internet,,1500,,,,,,,,750,825
+29,Property,Dubai,Yellow,2800,1500,240,1200,3600,8500,10250,12000,1400,1540
+30,GoToJail,Go to Jail,,,,,,,,,,,
+31,Property,Los Angeles,Green,3000,2000,260,1300,3900,9000,11000,12750,1500,1650
+32,Property,Paris,Green,3000,2000,260,1300,3900,9000,11000,12750,1500,1650
+33,Chest,Community Chest,,,,,,,,,,,
+34,Property,London,Green,3200,2000,280,1500,4500,10000,12000,14000,1600,1760
+35,Station,West Hyperloop,,2000,,,,,,,,1000,1100
+36,Chance,Chance,,,,,,,,,,,
+37,Property,New York City,DarkBlue,3500,2000,350,1750,5000,11000,13000,15000,1750,1925
+38,Tax,Luxury Tax,,1000,,,,,,,,,
+39,Property,Tokyo,DarkBlue,4000,2000,500,2000,6000,14000,17000,20000,2000,2200

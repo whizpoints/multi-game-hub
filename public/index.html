@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUDO - Ultimate Multiplayer Board Game</title>
+  <link rel="stylesheet" href="landing.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+    <div class="container">
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🎮</div>
+        <h1>GAME HUB</h1>
+      </div>
+      <nav class="nav">
+        <a href="#wall-of-fame" class="nav-link">Wall of Fame</a>
+      </nav>
+    </header>
+
+    <main class="hero">
+      <div class="hero-content glass-card">
+        <h2 class="hero-title">Welcome to the <span class="highlight">Multi-Game Hub</span></h2>
+        <p class="hero-subtitle">Play the ultimate Ludo experience or dominate the property market in Monopoly!</p>
+        <div class="hero-actions" style="display: flex; gap: 20px; justify-content: center;">
+          <a href="/play" class="btn primary lg action-btn">Play Ludo 🎲</a>
+          <a href="/monopoly/index.html" class="btn primary lg action-btn" style="background: #2563eb; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">Play Monopoly 🏙️</a>
+        </div>
+      </div>
+    </main>
+
+    <section id="leaderboard" class="section">
+      <div class="glass-card full-width">
+        <h2 class="section-title">🌍 Global Leaderboard</h2>
+        <p class="section-desc">The greatest Ludo strategists of all time.</p>
+        
+        <div class="leaderboard-container">
+          <div class="table-responsive">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Player</th>
+                  <th>Class</th>
+                  <th>Points</th>
+                  <th>Win Rate</th>
+                  <th>Kills</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-body">
+                <tr><td colspan="6" class="loading">Loading champions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="wall-of-fame" class="section">
+      <div class="glass-card full-width">
+        <h2 class="section-title">🏆 Recent Matches (Wall of Fame)</h2>
+        <p class="section-desc">The most recent completed battles.</p>
+        
+        <div class="leaderboard-container">
+          <div class="table-responsive">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Winner</th>
+                  <th>Players</th>
+                </tr>
+              </thead>
+              <tbody id="matches-body">
+                <tr><td colspan="3" class="loading">Loading matches...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer glass-card">
+      <p>&copy; 2026 LUDO Multiplayer. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script src="landing.js"></script>
+</body>
+</html>

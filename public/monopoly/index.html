@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Megacity Monopoly</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-mesh">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+    
+    <div class="layout-container">
+        
+        <!-- Fullscreen Button -->
+        <button id="fullscreen-btn" class="glass-icon-btn" title="Toggle Fullscreen (F)">⛶</button>
+        <!-- Left Sidebar: Players and Chat -->
+        <div class="sidebar left-sidebar">
+            <div class="glass-panel" style="flex: 1;">
+                <h3 class="panel-title">Players</h3>
+                <div id="players-list">
+                    <!-- Player cards go here -->
+                </div>
+                <div id="host-controls" class="hidden" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                    <button id="add-bot-btn" class="glass-btn" style="padding: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Bot</button>
+                    <button id="add-local-btn" class="glass-btn" style="padding: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Local Player</button>
+                    <button id="start-game-btn" class="glass-btn" style="padding: 12px; font-size: 1rem; margin-top: 5px;">START GAME</button>
+                </div>
+            </div>
+            <div class="glass-panel" style="flex: 1;">
+                <h3 class="panel-title">Action Log</h3>
+                <div id="action-log" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
+            </div>
+        </div>
+
+        
+        <!-- AUCTION OVERLAY -->
+        <div id="auction-overlay" class="hidden" style="position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+            <div style="background: #1e293b; padding: 30px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #334155;">
+                <h2 style="font-size: 2rem; margin-bottom: 10px; color: #f59e0b; text-transform: uppercase;">LIVE AUCTION</h2>
+                <h3 id="auction-property" style="font-size: 1.5rem; margin-bottom: 20px;">TROY</h3>
+                
+                <div style="font-size: 3rem; font-weight: 900; color: #22c55e; margin-bottom: 10px;" id="auction-bid">$10</div>
+                <div id="auction-leader" style="font-size: 1rem; color: #94a3b8; margin-bottom: 20px;">Highest Bidder: NONE</div>
+                
+                <div style="font-size: 1.2rem; font-weight: bold; color: #ef4444; margin-bottom: 20px;" id="auction-timer">15s REMAINING</div>
+                
+                <div id="auction-controls" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+                    <button class="glass-btn" style="background: #3b82f6; flex: 1;" onclick="socket.emit('placeBid', 10)">BID +$10</button>
+                    <button class="glass-btn" style="background: #8b5cf6; flex: 1;" onclick="socket.emit('placeBid', 50)">BID +$50</button>
+                    <button class="glass-btn" style="background: #ef4444; flex: 1;" onclick="socket.emit('foldAuction')">FOLD</button>
+                </div>
+                
+                <div id="auction-status" style="font-size: 0.85rem; color: #cbd5e1;">Waiting for bids...</div>
+            </div>
+        </div>
+
+        <!-- Center: The Board -->
+        <div class="board-wrapper">
+            <div class="board" id="board">
+                <!-- Tiles injected via JS -->
+                
+                                <div class="center-hub">
+                    <div class="decks">
+                        <div class="deck chance-deck">
+                            <div class="deck-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
+                            <div>CHANCE</div>
+                        </div>
+                        <div class="dice-arena">
+                            <div class="dice-container" style="display: flex; gap: 30px; margin-bottom: 20px;">
+                                <div class="dice-scene">
+                                    <div id="die1" class="dice-cube">
+                                        <div class="dice-face face-1"><span class="pip p-c"></span></div>
+                                        <div class="dice-face face-2"><span class="pip p-tl"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-3"><span class="pip p-tl"></span><span class="pip p-c"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-4"><span class="pip p-tl"></span><span class="pip p-tr"></span><span class="pip p-bl"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-5"><span class="pip p-tl"></span><span class="pip p-tr"></span><span class="pip p-c"></span><span class="pip p-bl"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-6"><span class="pip p-tl"></span><span class="pip p-tr"></span><span class="pip p-ml"></span><span class="pip p-mr"></span><span class="pip p-bl"></span><span class="pip p-br"></span></div>
+                                    </div>
+                                </div>
+                                <div class="dice-scene">
+                                    <div id="die2" class="dice-cube">
+                                        <div class="dice-face face-1"><span class="pip p-c"></span></div>
+                                        <div class="dice-face face-2"><span class="pip p-tl"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-3"><span class="pip p-tl"></span><span class="pip p-c"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-4"><span class="pip p-tl"></span><span class="pip p-tr"></span><span class="pip p-bl"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-5"><span class="pip p-tl"></span><span class="pip p-tr"></span><span class="pip p-c"></span><span class="pip p-bl"></span><span class="pip p-br"></span></div>
+                                        <div class="dice-face face-6"><span class="pip p-tl"></span><span class="pip p-tr"></span><span class="pip p-ml"></span><span class="pip p-mr"></span><span class="pip p-bl"></span><span class="pip p-br"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; width: 100%;"><button id="roll-btn" class="glass-btn glow-primary" style="flex: 1;">ROLL DICE</button><button id="pay-jail-btn" class="glass-btn" style="background: #22c55e; display: none; font-size: 0.9rem;">PAY $50 FINE</button><button id="use-jail-card-btn" class="glass-btn" style="background: #3b82f6; display: none; font-size: 0.9rem;">USE CARD</button></div>
+                        </div>
+                        <div class="deck chest-deck">
+                            <div class="deck-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg></div>
+                            <div>COMMUNITY</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Sidebar: Property Details -->
+        <div class="sidebar right-sidebar">
+            <div class="glass-panel property-card-panel" id="property-card-panel">
+                <div class="placeholder-text">Hover over a property to view details</div>
+                
+                <div id="property-details" class="hidden">
+                    <div class="pc-header" id="pc-header">
+                        <span id="pc-name">Property Name</span>
+                    </div>
+                    <div class="pc-body">
+                        <div class="pc-row"><span class="pc-label">Buy Price:</span> <span class="pc-val" id="pc-price"></span></div>
+                        <div class="pc-row"><span class="pc-label">Base Rent:</span> <span class="pc-val" id="pc-rent"></span></div>
+                        
+                        <div id="pc-houses-container">
+                            <hr class="pc-hr">
+                            <div class="pc-row"><span class="pc-label pc-sub">With 1 House:</span> <span class="pc-val" id="pc-h1"></span></div>
+                            <div class="pc-row"><span class="pc-label pc-sub">With 2 Houses:</span> <span class="pc-val" id="pc-h2"></span></div>
+                            <div class="pc-row"><span class="pc-label pc-sub">With 3 Houses:</span> <span class="pc-val" id="pc-h3"></span></div>
+                            <div class="pc-row"><span class="pc-label pc-sub">With 4 Houses:</span> <span class="pc-val" id="pc-h4"></span></div>
+                            <div class="pc-row highlight-hotel"><span class="pc-label">With Hotel:</span> <span class="pc-val" id="pc-hotel"></span></div>
+                        </div>
+
+                        <hr class="pc-hr">
+                        <div class="pc-row"><span class="pc-label">House Cost:</span> <span class="pc-val" id="pc-house-cost"></span></div>
+                        <div class="pc-row"><span class="pc-label">Mortgage Val:</span> <span class="pc-val" id="pc-mortgage"></span></div>
+                        <div class="pc-row"><span class="pc-label">Unmortgage:</span> <span class="pc-val" id="pc-unmortgage"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="boardData.js?v=2"></script>
+    <script src="game.js?v=2"></script>
+</body>
+</html>

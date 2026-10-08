@@ -1,0 +1,34 @@
+const fs = require('fs');
+let bd = fs.readFileSync('public/monopoly/boardData.js', 'utf8');
+
+bd = bd.replace(/"Ho Chi Minh"/g, '"Rome"');
+bd = bd.replace(/"Manila"/g, '"Lima"');
+bd = bd.replace(/"Taipei"/g, '"Bali"');
+bd = bd.replace(/"Santiago"/g, '"Oslo"');
+bd = bd.replace(/"Warsaw"/g, '"Fiji"');
+bd = bd.replace(/"Cape Town"/g, '"Kobe"');
+bd = bd.replace(/"K\. Lumpur"/g, '"Bonn"');
+bd = bd.replace(/"Bangkok"/g, '"Nice"');
+bd = bd.replace(/"Bogota"/g, '"York"');
+bd = bd.replace(/"Nairobi"/g, '"Kiev"');
+bd = bd.replace(/"Lima"/g, '"Troy"');
+bd = bd.replace(/"L\.A\."/g, '"Rio"');
+bd = bd.replace(/"Paris"/g, '"Maui"');
+bd = bd.replace(/"London"/g, '"Giza"');
+bd = bd.replace(/"New York"/g, '"Doha"');
+bd = bd.replace(/"Tokyo"/g, '"Baku"');
+bd = bd.replace(/"Seoul"/g, '"Reno"');
+bd = bd.replace(/"Singapore"/g, '"Cali"');
+bd = bd.replace(/"Shanghai"/g, '"Ibiza"');
+bd = bd.replace(/"Dubai"/g, '"Bora"');
+bd = bd.replace(/"South Hyperloop"/g, '"Rail 1"');
+bd = bd.replace(/"East Hyperloop"/g, '"Rail 2"');
+bd = bd.replace(/"North Hyperloop"/g, '"Rail 3"');
+bd = bd.replace(/"West Hyperloop"/g, '"Rail 4"');
+bd = bd.replace(/"Solar Grid"/g, '"Power"');
+bd = bd.replace(/"Quantum Net"/g, '"Water"');
+bd = bd.replace(/"Income Tax"/g, '"Tax 1"');
+bd = bd.replace(/"Luxury Tax"/g, '"Tax 2"');
+
+fs.writeFileSync('public/monopoly/boardData.js', bd);
+console.log('boardData updated');

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUDO · Multiplayer Board Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- ═══════════ AUTH SCREEN ═══════════ -->
+  <div id="auth-screen" class="screen">
+    <div class="auth-card">
+      <h1 class="title">LUDO</h1>
+      <p class="subtitle">Multiplayer Board Game</p>
+
+      <div class="auth-form">
+        <input type="text" id="player-name-input" placeholder="Enter your name" autocomplete="off" maxlength="20">
+        <div class="auth-buttons">
+          <button id="register-btn" class="btn primary">Register</button>
+          <button id="login-btn" class="btn secondary">Login</button>
+        </div>
+      </div>
+
+      <div id="auth-stats" class="stats-row hidden">
+        <div class="stat"><span class="stat-val" id="stat-wins">0</span><span class="stat-label">Wins</span></div>
+        <div class="stat"><span class="stat-val" id="stat-games">0</span><span class="stat-label">Games</span></div>
+      </div>
+
+      <button id="toggle-leaderboard-btn" class="btn ghost small mt">Leaderboard</button>
+
+      <div id="leaderboard-section" class="hidden mt">
+        <h3 style="margin-bottom: 5px;">Hall of Fame</h3>
+        <p class="muted small" style="margin-bottom: 15px;">Ranked by overall score, victories, and tactical gameplay.</p>
+        <table id="leaderboard-table">
+          <thead><tr><th>#</th><th>Name</th><th>Wins</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ LOBBY SCREEN ═══════════ -->
+  <div id="lobby-screen" class="screen hidden">
+    <div class="lobby-container">
+      <h2 class="lobby-title">Game Lobby</h2>
+
+      <div class="share-link">
+        <span>Share:</span>
+        <input type="text" id="share-url" readonly>
+        <button id="copy-link-btn" class="btn ghost small">Copy</button>
+      </div>
+
+      <div id="lobby-players" class="players-grid"></div>
+
+      <div id="host-settings" class="hidden mt" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px;">
+        <label style="display:block; margin-bottom: 10px; font-weight: 600;">Tokens per Player: <span id="token-count-display">4</span></label>
+        <input type="range" id="token-count-slider" min="1" max="6" value="4" style="width: 100%;">
+        <div style="margin-top: 15px; text-align: left;">
+          <label style="display:flex; align-items:center; gap:10px; font-weight: 600; cursor: pointer;">
+            <input type="checkbox" id="block-rule-toggle" checked style="width: 18px; height: 18px; cursor: pointer;">
+            Enable Block Rule <span class="muted small">(2 tokens block)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="lobby-actions mt">
+        <button id="add-local-btn" class="btn secondary small hidden">Add Local Player</button>
+        <button id="add-bot-btn" class="btn ghost small hidden" style="border: 1px solid rgba(255,255,255,0.2);">Add Bot 🤖</button>
+        <p id="waiting-text" class="muted">Waiting for players…</p>
+        <button id="start-btn" class="btn primary lg hidden">Start Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ GAME SCREEN ═══════════ -->
+  <div id="game-screen" class="screen hidden">
+    <div class="top-bar">
+      <div id="turn-info" class="turn-indicator">
+        <span class="color-badge"></span>
+        <span class="turn-text">Waiting…</span>
+      </div>
+    </div>
+
+    <div class="game-layout">
+      <!-- Board -->
+      <div class="board-panel">
+        <div id="board-wrapper">
+          <svg id="ludo-board" viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls-panel">
+        
+        <!-- Players list with mini-dice inside -->
+        <div id="player-status-cards" class="status-cards-container">
+          <!-- Populated dynamically in client.js -->
+        </div>
+
+        <div id="token-choices" class="hidden">
+          <p class="section-heading">Select Token to Move</p>
+          <div class="token-buttons" id="dynamic-token-buttons">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="game-actions" style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 15px;">
+          <button id="fullscreen-btn" class="btn ghost small">⛶ Fullscreen</button>
+          <button id="restart-btn" class="btn ghost small">Propose Restart</button>
+          <button id="force-restart-btn" class="btn ghost small hidden" style="color: var(--primary); border-color: rgba(138,43,226,0.3);">Force Restart</button>
+          <button id="force-end-btn" class="btn ghost small hidden" style="color: var(--yellow); border-color: rgba(255,165,2,0.3);">Fast End Game</button>
+          <p id="restart-status" class="muted small"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAUSE OVERLAY ═══════════ -->
+  <div id="pause-overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <div class="spinner"></div>
+      <h2>Game Paused</h2>
+      <p id="pause-reason">A player disconnected. Waiting for reconnect…</p>
+    </div>
+  </div>
+
+  <script src="audio.js?v=1"></script>
+  <script src="client.js?v=9"></script>
+</body>
+</html>

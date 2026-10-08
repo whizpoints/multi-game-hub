@@ -1,0 +1,275 @@
+:root {
+    --color-brown: #8b4513;
+    --color-lightblue: #06b6d4; /* Matches the cyan in the image */
+    --color-pink: #ec4899;
+    --color-orange: #f97316;
+    --color-red: #ef4444;
+    --color-yellow: #eab308;
+    --color-green: #16a34a;
+    --color-darkblue: #2563eb;
+    
+    --text-dark: #111827;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0; padding: 0; overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    /* Soft gradient background from the image */
+    background: linear-gradient(135deg, #dbeafe 0%, #fce7f3 100%);
+}
+
+.bg-mesh { display: none; } /* Removed to match the flat clean style */
+
+.layout-container {
+    display: flex; width: 100vw; height: 100vh;
+    justify-content: center; align-items: center;
+}
+
+/* Sidebars */
+.sidebar {
+    width: 260px; padding: 15px;
+    display: flex; flex-direction: column; gap: 15px;
+    flex-shrink: 0; z-index: 10;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 16px; padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    display: flex; flex-direction: column;
+}
+.panel-title {
+    margin: 0 0 15px 0; font-size: 0.9rem; font-weight: 800; 
+    text-transform: uppercase; letter-spacing: 1px; color: #64748b; text-align: center;
+}
+
+/* Board Wrapper - Let it stretch wide like the image */
+.board-wrapper {
+    flex: 1; height: 90vh; /* Constrain height so width stretches into a wide rectangle */
+    margin: 0 10px;
+    display: flex; justify-content: center; align-items: center;
+}
+
+/* THE BOARD EXACTLY AS PICTURED */
+.board { position: relative;
+    display: grid;
+    grid-template-columns: 1.5fr repeat(9, 1fr) 1.5fr;
+    grid-template-rows: 1.5fr repeat(9, 1fr) 1.5fr;
+    gap: 0; /* NO GAPS - Continuous grid */
+    width: 100%; height: 100%;
+    background: #eafff5; /* Light mint/cyan center from image */
+    border: 2px solid #1f2937;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
+
+/* Tiles - Clean, Flat, Solid Borders */
+.tile {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+}
+
+/* Subtle hover, no scaling to preserve the solid grid illusion */
+.tile:hover {
+    background: #f8fafc;
+    z-index: 10;
+    box-shadow: inset 0 0 0 2px #3b82f6;
+}
+
+.tile .name { 
+    padding: 2px; line-height: 1.2; z-index: 2; pointer-events: none; 
+    word-wrap: break-word; font-size: 0.65rem;
+}
+.tile .icon { font-size: 1.6rem; z-index: 2; margin-top: 4px; }
+.tile .price { font-size: 0.6rem; color: var(--text-dark); font-weight: 800; margin-top: 2px; }
+
+/* Flat Solid Color Bands */
+.color-band {
+    position: absolute;
+    z-index: 1;
+}
+
+/* Orientations */
+.tile.bottom { padding-top: 25%; }
+.tile.bottom .color-band { top: 0; left: 0; width: 100%; height: 25%; }
+
+.tile.top { padding-bottom: 25%; }
+.tile.top .color-band { bottom: 0; left: 0; width: 100%; height: 25%; }
+
+.tile.left { padding-right: 20%; flex-direction: column; }
+.tile.left .color-band { top: 0; right: 0; width: 20%; height: 100%; }
+
+.tile.right { padding-left: 20%; flex-direction: column; }
+.tile.right .color-band { top: 0; left: 0; width: 20%; height: 100%; }
+
+.tile.corner { font-size: 0.8rem; background: #ffffff; }
+
+/* Center Hub */
+.center-hub {
+    grid-column: 2 / 11;
+    grid-row: 2 / 11;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent;
+}
+
+/* White Card Decks from Image */
+.decks {
+    width: 100%; height: 100%;
+    position: absolute; top: 0; left: 0;
+    pointer-events: none;
+}
+
+.deck {
+    width: 100px; height: 140px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; text-align: center; font-size: 0.85rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    cursor: pointer; transition: transform 0.2s ease;
+    padding: 8px; line-height: 1.2;
+    pointer-events: auto;
+}
+
+.deck:hover { box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+.chance-deck { position: absolute; bottom: 30px; left: 30px; color: #ef4444; transform: rotate(-10deg); }
+.chance-deck:hover { transform: rotate(-10deg) translateY(-5px); }
+.chest-deck { position: absolute; top: 30px; right: 30px; color: #3b82f6; transform: rotate(10deg); }
+.chest-deck:hover { transform: rotate(10deg) translateY(-5px); }
+.chance-deck .deck-icon { font-size: 3rem; margin-bottom: 5px; font-weight: 900; }
+.chest-deck .deck-icon { font-size: 3rem; margin-bottom: 5px; }
+
+/* The Central White Box */
+.dice-arena {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #ffffff; padding: 30px 40px; border-radius: 24px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 1px solid #f1f5f9;
+    pointer-events: auto;
+    display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 5;
+}
+.dice-container { display: flex; gap: 15px; }
+.dice {
+    font-size: 3.5rem; background: #f8fafc;
+    border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05), 0 5px 10px rgba(0,0,0,0.05);
+}
+
+.glass-btn {
+    background: #2563eb; border: none;
+    color: white; padding: 15px 50px; border-radius: 40px;
+    font-weight: 900; font-size: 1.2rem; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.2s ease; box-shadow: 0 8px 15px rgba(37, 99, 235, 0.3);
+    text-transform: uppercase;
+}
+.glass-btn:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 12px 20px rgba(37, 99, 235, 0.4); }
+
+/* Right Sidebar Property Details */
+.property-card-panel { padding: 0; overflow: hidden; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+.placeholder-text { text-align: center; color: #94a3b8; font-weight: bold; font-style: italic; padding: 40px 20px; }
+.pc-header {
+    font-size: 1.1rem; font-weight: 900; text-align: center;
+    padding: 20px 15px; text-transform: uppercase; letter-spacing: 1px;
+    color: white; border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+.pc-body { padding: 15px 20px; }
+.pc-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 10px; }
+.pc-label { color: #64748b; font-weight: 700; }
+.pc-sub { padding-left: 15px; font-weight: 600; }
+.pc-val { font-weight: 900; color: #0f172a; }
+.pc-hr { border: none; border-top: 2px solid #f1f5f9; margin: 12px 0; }
+.highlight-hotel { color: #8b4513; font-weight: 900; }
+.hidden { display: none !important; }
+
+/* Fullscreen Button */
+.glass-icon-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    color: #0f172a;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-icon-btn:hover {
+    background: #ffffff;
+    transform: scale(1.1) translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* 3D Dice CSS */
+.dice-scene { width: 50px; height: 50px; perspective: 300px; }
+.dice-cube {
+  width: 50px; height: 50px; position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.dice-cube.rolling { animation: roll-animation 0.5s linear infinite; }
+.dice-face {
+  position: absolute;
+  width: 50px; height: 50px;
+  background: linear-gradient(145deg, #fafafa, #e8e8e8);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
+}
+.pip {
+  position: absolute;
+  width: 10px; height: 10px;
+  background: radial-gradient(circle at 30% 30%, #555, #222);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+}
+.p-tl { top: 8px; left: 8px; }
+.p-tr { top: 8px; right: 8px; }
+.p-ml { top: 50%; left: 8px; transform: translateY(-50%); }
+.p-mr { top: 50%; right: 8px; transform: translateY(-50%); }
+.p-bl { bottom: 8px; left: 8px; }
+.p-br { bottom: 8px; right: 8px; }
+.p-c  { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+.face-1 { transform: rotateY(0deg) translateZ(25px); }
+.face-2 { transform: rotateY(180deg) translateZ(25px); }
+.face-3 { transform: rotateY(-90deg) translateZ(25px); }
+.face-4 { transform: rotateY(90deg) translateZ(25px); }
+.face-5 { transform: rotateX(-90deg) translateZ(25px); }
+.face-6 { transform: rotateX(90deg) translateZ(25px); }
+
+@keyframes roll-animation { 0% { transform: rotateX(0deg) rotateY(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg); } } 100% { transform: rotateX(360deg) rotateY(360deg); } }
+
+/* Animated Token */
+.player-token-anim {
+    position: absolute;
+    width: 30px; height: 30px;
+    font-size: 28px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 50;
+    filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.5));
+}
+
+.player-card { background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.2s; overflow: hidden; }
+.player-card svg { width: 30px; height: 30px; }
+
