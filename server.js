@@ -358,9 +358,10 @@ function checkAllFinished(forceEnd = false) {
 // ── REST API ─────────────────────────────────────────────────────────────────
 app.post('/api/register', (req, res) => {
   const name = (req.body.name || '').trim();
-  if (!name) return res.status(400).json({ error: 'Name is required' });
+  const pin = (req.body.pin || '').trim();
+  if (!name || !pin) return res.status(400).json({ error: 'Name and PIN are required' });
   try {
-    const player = db.registerPlayer(name);
+    const player = db.registerPlayer(name, pin);
     res.json(player);  
   } catch (err) {
     res.status(409).json({ error: 'Name already taken' });
@@ -369,9 +370,10 @@ app.post('/api/register', (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const name = (req.body.name || '').trim();
-  if (!name) return res.status(400).json({ error: 'Name is required' });
-  const player = db.loginPlayer(name);
-  if (!player) return res.status(404).json({ error: 'Player not found' });
+  const pin = (req.body.pin || '').trim();
+  if (!name || !pin) return res.status(400).json({ error: 'Name and PIN are required' });
+  const player = db.loginPlayer(name, pin);
+  if (!player) return res.status(404).json({ error: 'Invalid name or PIN' });
   const stats = db.getPlayerStats(player.id);
   res.json({ id: player.id, name: player.name, gamesPlayed: stats?.games_played ?? 0, wins: stats?.games_won ?? 0 });
 });

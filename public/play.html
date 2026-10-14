@@ -18,10 +18,15 @@
       <p class="subtitle">Multiplayer Board Game</p>
 
       <div class="auth-form">
-        <input type="text" id="player-name-input" placeholder="Enter your name" autocomplete="off" maxlength="20">
+        <select id="player-select" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.2); color: white; font-size: 16px;">
+          <option value="">-- Select an account --</option>
+          <option value="NEW_PLAYER">+ Add New Player</option>
+        </select>
+        <input type="text" id="player-name-input" class="hidden" placeholder="Enter new name" autocomplete="off" maxlength="20" style="margin-bottom: 10px;">
+        <input type="password" id="player-pin-input" class="hidden" placeholder="Enter PIN (e.g. 1234)" autocomplete="off" maxlength="10">
         <div class="auth-buttons">
-          <button id="register-btn" class="btn primary">Register</button>
-          <button id="login-btn" class="btn secondary">Login</button>
+          <button id="register-btn" class="btn primary hidden">Register</button>
+          <button id="login-btn" class="btn secondary hidden">Login</button>
         </div>
       </div>
 

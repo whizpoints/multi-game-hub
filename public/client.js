@@ -68,12 +68,47 @@ function toast(text, icon = 'info') {
 // ══════════════════════════════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════════════════════════════
+async function loadPlayersList() {
+  try {
+    const res = await fetch('/api/players');
+    const players = await res.json();
+    const select = $('player-select');
+    players.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = p.name;
+      select.appendChild(opt);
+    });
+  } catch {}
+}
+
+$('player-select').addEventListener('change', (e) => {
+  const val = e.target.value;
+  if (val === 'NEW_PLAYER') {
+    $('player-name-input').classList.remove('hidden');
+    $('player-pin-input').classList.remove('hidden');
+    $('register-btn').classList.remove('hidden');
+    $('login-btn').classList.add('hidden');
+  } else if (val) {
+    $('player-name-input').classList.add('hidden');
+    $('player-pin-input').classList.remove('hidden');
+    $('login-btn').classList.remove('hidden');
+    $('register-btn').classList.add('hidden');
+  } else {
+    $('player-name-input').classList.add('hidden');
+    $('player-pin-input').classList.add('hidden');
+    $('login-btn').classList.add('hidden');
+    $('register-btn').classList.add('hidden');
+  }
+});
+
 $('register-btn').addEventListener('click', async () => {
   const name = $('player-name-input').value.trim();
-  if (!name) return toast('Please enter a name', 'warning');
+  const pin = $('player-pin-input').value.trim();
+  if (!name || !pin) return toast('Please enter a name and PIN', 'warning');
   try {
     const res = await fetch('/api/register', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name })
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, pin })
     });
     const data = await res.json();
     if (!res.ok) return toast(data.error || 'Registration failed', 'error');
@@ -90,11 +125,12 @@ $('register-btn').addEventListener('click', async () => {
 });
 
 $('login-btn').addEventListener('click', async () => {
-  const name = $('player-name-input').value.trim();
-  if (!name) return toast('Please enter a name', 'warning');
+  const name = $('player-select').value === 'NEW_PLAYER' ? $('player-name-input').value.trim() : $('player-select').value;
+  const pin = $('player-pin-input').value.trim();
+  if (!name || !pin) return toast('Please enter a name and PIN', 'warning');
   try {
     const res = await fetch('/api/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name })
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, pin })
     });
     const data = await res.json();
     if (!res.ok) return toast(data.error || 'Login failed', 'error');
@@ -138,6 +174,7 @@ $('toggle-leaderboard-btn').addEventListener('click', async () => {
 });
 
 window.addEventListener('load', () => {
+  loadPlayersList();
   const storedName = localStorage.getItem('ludoName');
   const storedDbId = localStorage.getItem('ludoDbId');
   if (storedName) {
@@ -869,13 +906,9 @@ socket.on('diceResult', async ({ roll, playerColor, playerId, validMoves, autoEn
   await animatePlayerDice(playerId, roll);
 
   if (myColors.includes(playerColor)) {
-    if (autoEndTurn) {
-      toast(`Rolled ${roll} — no valid moves`, 'info');
-    } else if (validMoves.length > 0) {
+    if (!autoEndTurn && validMoves.length > 0) {
       highlightTokens(validMoves, playerColor);
     }
-  } else {
-    toast(`${playerColor} rolled a ${roll}`, 'info');
   }
 });
 
@@ -903,7 +936,6 @@ socket.on('tokenMoved', async ({ color, tokenIndex, fromStep, toStep, isCapture,
 });
 
 socket.on('bonusRoll', ({ color }) => {
-  toast(`${color} gets a bonus roll!`, 'success');
   if (myColors.includes(color)) {
     const player = currentGameState.players.find(p => p.color === color);
     if (player) {

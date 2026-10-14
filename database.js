@@ -26,21 +26,21 @@ CREATE TABLE IF NOT EXISTS matches (
 );
 `);
 
-function registerPlayer(name) {
-  const insertPlayer = db.prepare('INSERT INTO players (name) VALUES (?)');
+function registerPlayer(name, pin) {
+  const insertPlayer = db.prepare('INSERT INTO players (name, pin) VALUES (?, ?)');
   const insertStats = db.prepare('INSERT INTO stats (player_id) VALUES (?)');
   
-  const transaction = db.transaction((playerName) => {
-    const info = insertPlayer.run(playerName);
+  const transaction = db.transaction((playerName, playerPin) => {
+    const info = insertPlayer.run(playerName, playerPin);
     insertStats.run(info.lastInsertRowid);
     return { id: info.lastInsertRowid, name: playerName };
   });
 
-  return transaction(name);
+  return transaction(name, pin);
 }
 
-function loginPlayer(name) {
-  const player = db.prepare('SELECT id, name FROM players WHERE name = ?').get(name);
+function loginPlayer(name, pin) {
+  const player = db.prepare('SELECT id, name FROM players WHERE name = ? AND pin = ?').get(name, pin);
   return player || null;
 }
 
