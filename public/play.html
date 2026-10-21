@@ -7,41 +7,85 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
-  <!-- ═══════════ AUTH SCREEN ═══════════ -->
+  <!-- ═══════════ AUTH SCREEN (FLUTTER GLASSMORPHISM LIGHT THEME) ═══════════ -->
   <div id="auth-screen" class="screen">
     <div class="auth-card">
-      <h1 class="title">LUDO</h1>
-      <p class="subtitle">Multiplayer Board Game</p>
+      <div class="auth-brand-badge">
+        <span class="badge-dot"></span> TACTICAL ESPORTS LUDO
+      </div>
+      <h1 class="title">LUDO ROYALE</h1>
+      <p class="subtitle">Select commander profile and enter your 4-digit PIN</p>
 
       <div class="auth-form">
-        <select id="player-select" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.2); color: white; font-size: 16px;">
-          <option value="">-- Select an account --</option>
-          <option value="NEW_PLAYER">+ Add New Player</option>
-        </select>
-        <input type="text" id="player-name-input" class="hidden" placeholder="Enter new name" autocomplete="off" maxlength="20" style="margin-bottom: 10px;">
-        <input type="password" id="player-pin-input" class="hidden" placeholder="Enter PIN (e.g. 1234)" autocomplete="off" maxlength="10">
+        <!-- Account Selector -->
+        <div class="auth-field-group">
+          <label for="player-select" class="auth-field-label">
+            <span>COMMANDER ACCOUNT</span>
+            <span class="auth-field-hint">PROFILE</span>
+          </label>
+          <select id="player-select" class="modern-auth-select">
+            <option value="">-- Select an account --</option>
+            <option value="NEW_PLAYER">➕ + Add New Player</option>
+          </select>
+        </div>
+
+        <!-- New Player Name Field -->
+        <div id="player-name-field" class="auth-field-group hidden">
+          <label for="player-name-input" class="auth-field-label">
+            <span>NEW COMMANDER CODENAME</span>
+            <span class="auth-field-hint">USERNAME</span>
+          </label>
+          <input type="text" id="player-name-input" class="modern-auth-input" placeholder="Enter commander name" autocomplete="off" maxlength="20">
+        </div>
+
+        <!-- 4-Digit PIN Field -->
+        <div id="player-pin-field" class="auth-field-group hidden">
+          <label for="player-pin-input" class="auth-field-label">
+            <span>4-DIGIT SECURITY PIN</span>
+            <span class="auth-field-hint">🔒 PASSCODE</span>
+          </label>
+          <input type="password" id="player-pin-input" class="modern-pin-input" placeholder="••••" inputmode="numeric" maxlength="6" autocomplete="current-password">
+          <div class="pin-subtext">Enter your 4-digit secret PIN (e.g. 1234)</div>
+        </div>
+
+        <!-- Action Buttons -->
         <div class="auth-buttons">
-          <button id="register-btn" class="btn primary hidden">Register</button>
-          <button id="login-btn" class="btn secondary hidden">Login</button>
+          <button id="login-btn" class="btn-modern-login hidden">
+            <span>ENTER ARENA</span>
+            <span style="font-size: 1.15rem;">➔</span>
+          </button>
+          <button id="register-btn" class="btn-modern-register hidden">
+            <span>REGISTER & ENTER</span>
+            <span style="font-size: 1.15rem;">➔</span>
+          </button>
         </div>
       </div>
 
-      <div id="auth-stats" class="stats-row hidden">
-        <div class="stat"><span class="stat-val" id="stat-wins">0</span><span class="stat-label">Wins</span></div>
-        <div class="stat"><span class="stat-val" id="stat-games">0</span><span class="stat-label">Games</span></div>
+      <!-- Quick Stats Row -->
+      <div id="auth-stats" class="auth-stats-card hidden">
+        <div class="stat"><span class="stat-val" id="stat-wins">0</span><span class="stat-label">Total Wins</span></div>
+        <div style="width: 1px; background: #e2e8f0;"></div>
+        <div class="stat"><span class="stat-val" id="stat-games">0</span><span class="stat-label">Matches</span></div>
       </div>
 
-      <button id="toggle-leaderboard-btn" class="btn ghost small mt">Leaderboard</button>
+      <!-- Leaderboard / Hall of Fame Toggle -->
+      <button id="toggle-leaderboard-btn" class="btn-auth-hall-of-fame">
+        <span>🏆</span>
+        <span>Hall of Fame & Leaderboard</span>
+      </button>
 
-      <div id="leaderboard-section" class="hidden mt">
-        <h3 style="margin-bottom: 5px;">Hall of Fame</h3>
-        <p class="muted small" style="margin-bottom: 15px;">Ranked by overall score, victories, and tactical gameplay.</p>
+      <div id="leaderboard-section" class="leaderboard-modern-container hidden">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+          <h3 style="font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 1.15rem; color: #0f172a; margin: 0;">HALL OF FAME</h3>
+          <span style="font-size: 0.75rem; font-weight: 700; color: #0284c7;">TOP 10</span>
+        </div>
+        <p class="muted small" style="margin-bottom: 12px; color: #64748b;">Ranked by overall score, victories, and tactical gameplay.</p>
         <table id="leaderboard-table">
           <thead><tr><th>#</th><th>Name</th><th>Wins</th></tr></thead>
           <tbody></tbody>
@@ -58,10 +102,13 @@
           <span class="pubg-tag">⚔️ TACTICAL SQUAD BRIEFING • 4 COMBATANTS</span>
           <h2 class="pubg-lobby-title">LUDO ROYALE SQUAD ARENA</h2>
         </div>
-        <div class="pubg-share-pill">
-          <span>📡 <strong>Wi-Fi Link:</strong></span>
-          <input type="text" id="share-url" readonly>
-          <button id="copy-link-btn" class="pubg-copy-btn">Copy</button>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div class="pubg-share-pill">
+            <span>📡 <strong>Wi-Fi Link:</strong></span>
+            <input type="text" id="share-url" readonly>
+            <button id="copy-link-btn" class="pubg-copy-btn">Copy</button>
+          </div>
+          <button id="switch-account-btn" class="pubg-logout-btn" title="Switch Account">👤 Switch Account</button>
         </div>
       </div>
 

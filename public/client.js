@@ -110,6 +110,8 @@ async function loadPlayersList() {
     const res = await fetch('/api/players');
     const players = await res.json();
     const select = $('player-select');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Select an account --</option><option value="NEW_PLAYER">➕ + Add New Player</option>';
     players.forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.name;
@@ -121,21 +123,58 @@ async function loadPlayersList() {
 
 $('player-select').addEventListener('change', (e) => {
   const val = e.target.value;
+  const nameField = $('player-name-field');
+  const pinField = $('player-pin-field');
+  const nameInput = $('player-name-input');
+  const pinInput = $('player-pin-input');
+  const regBtn = $('register-btn');
+  const loginBtn = $('login-btn');
+
   if (val === 'NEW_PLAYER') {
-    $('player-name-input').classList.remove('hidden');
-    $('player-pin-input').classList.remove('hidden');
-    $('register-btn').classList.remove('hidden');
-    $('login-btn').classList.add('hidden');
+    if (nameField) nameField.classList.remove('hidden');
+    if (pinField) pinField.classList.remove('hidden');
+    nameInput.classList.remove('hidden');
+    pinInput.classList.remove('hidden');
+    regBtn.classList.remove('hidden');
+    loginBtn.classList.add('hidden');
+    nameInput.value = '';
+    pinInput.value = '';
+    nameInput.focus();
   } else if (val) {
-    $('player-name-input').classList.add('hidden');
-    $('player-pin-input').classList.remove('hidden');
-    $('login-btn').classList.remove('hidden');
-    $('register-btn').classList.add('hidden');
+    if (nameField) nameField.classList.add('hidden');
+    if (pinField) pinField.classList.remove('hidden');
+    nameInput.classList.add('hidden');
+    pinInput.classList.remove('hidden');
+    loginBtn.classList.remove('hidden');
+    regBtn.classList.add('hidden');
+    pinInput.value = '';
+    pinInput.focus();
   } else {
-    $('player-name-input').classList.add('hidden');
-    $('player-pin-input').classList.add('hidden');
-    $('login-btn').classList.add('hidden');
-    $('register-btn').classList.add('hidden');
+    if (nameField) nameField.classList.add('hidden');
+    if (pinField) pinField.classList.add('hidden');
+    nameInput.classList.add('hidden');
+    pinInput.classList.add('hidden');
+    loginBtn.classList.add('hidden');
+    regBtn.classList.add('hidden');
+  }
+});
+
+// Smooth keyboard flow
+$('player-name-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    $('player-pin-input').focus();
+  }
+});
+
+$('player-pin-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (!$('login-btn').classList.contains('hidden')) {
+      $('login-btn').click();
+    } else if (!$('register-btn').classList.contains('hidden')) {
+      $('register-btn').click();
+    }
   }
 });
 
@@ -196,12 +235,12 @@ $('toggle-leaderboard-btn').addEventListener('click', async () => {
       const tbody = document.querySelector('#leaderboard-table tbody');
       tbody.innerHTML = '';
       players.sort((a,b) => b.score - a.score).slice(0, 10).forEach((p, i) => {
-        let c = '#57606f';
-        if (p.rankClass === 'S++') c = '#ff4757';
-        else if (p.rankClass === 'S') c = '#ffa502';
-        else if (p.rankClass === 'A') c = '#2ed573';
-        else if (p.rankClass === 'B') c = '#1e90ff';
-        else if (p.rankClass === 'C') c = '#a4b0be';
+        let c = '#0284c7';
+        if (p.rankClass === 'S++') c = '#dc2626';
+        else if (p.rankClass === 'S') c = '#d97706';
+        else if (p.rankClass === 'A') c = '#059669';
+        else if (p.rankClass === 'B') c = '#2563eb';
+        else if (p.rankClass === 'C') c = '#64748b';
         tbody.innerHTML += `<tr><td>${i+1}</td><td>${p.name} <span style="color:${c};font-size:0.8em;font-weight:bold">(${p.rankClass})</span></td><td>${p.gamesWon}</td></tr>`;
       });
     } catch {}
@@ -223,6 +262,23 @@ window.addEventListener('load', () => {
     }
     socket.emit('identify', { persistentId, name: myName, dbId: myDbId });
   }
+
+  const switchBtn = $('switch-account-btn');
+  if (switchBtn) {
+    switchBtn.addEventListener('click', () => {
+      localStorage.removeItem('ludoName');
+      localStorage.removeItem('ludoDbId');
+      myName = null;
+      myDbId = null;
+      showScreen('auth');
+      loadPlayersList();
+      $('player-select').value = '';
+      $('player-name-field')?.classList.add('hidden');
+      $('player-pin-field')?.classList.add('hidden');
+      $('login-btn').classList.add('hidden');
+      $('register-btn').classList.add('hidden');
+    });
+  }
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -238,36 +294,57 @@ $('add-local-btn').addEventListener('click', async () => {
     try {
       const players = await loadPlayers();
       
-      let html = `
-        <div style="max-height: 350px; overflow-y: auto; text-align: left; margin-bottom: 20px; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 10px; border: 1px solid var(--glass-border);">
-          <div style="display: grid; gap: 8px;">
-      `;
-      
-      players.forEach(p => {
-        let classColor = '#57606f';
-        if (p.rankClass === 'S++') classColor = '#ff4757';
-        else if (p.rankClass === 'S') classColor = '#ffa502';
-        else if (p.rankClass === 'A') classColor = '#2ed573';
-        else if (p.rankClass === 'B') classColor = '#1e90ff';
-        else if (p.rankClass === 'C') classColor = '#a4b0be';
+      let html = `<div class="local-players-scroll">`;
+      if (players && players.length > 0) {
+        players.forEach(p => {
+          let classColor = '#0284c7';
+          let classBg = '#e0f2fe';
+          let classBorder = '#bae6fd';
+          if (p.rankClass === 'S++') { classColor = '#dc2626'; classBg = '#fef2f2'; classBorder = '#fecaca'; }
+          else if (p.rankClass === 'S') { classColor = '#d97706'; classBg = '#fffbeb'; classBorder = '#fde68a'; }
+          else if (p.rankClass === 'A') { classColor = '#059669'; classBg = '#ecfdf5'; classBorder = '#a7f3d0'; }
+          else if (p.rankClass === 'B') { classColor = '#2563eb'; classBg = '#eff6ff'; classBorder = '#bfdbfe'; }
+          else if (p.rankClass === 'C') { classColor = '#475569'; classBg = '#f8fafc'; classBorder = '#e2e8f0'; }
 
+          const initial = (p.name || 'P').charAt(0).toUpperCase();
+
+          html += `
+            <div class="local-player-item">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #0284c7, #2563eb); color: white; display: flex; align-items: center; justify-content: center; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 1.1rem; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);">
+                  ${initial}
+                </div>
+                <div class="local-player-info">
+                  <span class="local-player-name">${p.name}</span>
+                  <div class="local-player-meta">
+                    <span class="local-badge-wins">🏆 ${p.gamesWon ?? 0} Wins</span>
+                    <span class="local-badge-tier" style="color: ${classColor}; background: ${classBg}; border: 1px solid ${classBorder};">Tier ${p.rankClass || 'C'}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn-local-add" onclick="window.selectLocalPlayer(${p.id}, '${p.name.replace(/'/g, "\\'")}')">+ Add</button>
+                <button type="button" class="btn-local-del" onclick="window.deletePlayer(${p.id}, event)" title="Delete Player">🗑</button>
+              </div>
+            </div>
+          `;
+        });
+      } else {
         html += `
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-weight: 600; font-size: 1.1rem; color: #fff;">${p.name}</span>
-              <span style="font-size: 0.8rem; color: rgba(255,255,255,0.6);">Wins: ${p.gamesWon} • Class: <span style="color: ${classColor}; font-weight: bold;">${p.rankClass}</span></span>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn secondary small" style="padding: 6px 12px;" onclick="window.selectLocalPlayer(${p.id}, '${p.name}')">Add</button>
-              <button class="btn ghost small" style="padding: 6px 10px; color: #ff4757; border-color: rgba(255,71,87,0.3);" onclick="window.deletePlayer(${p.id}, event)" title="Delete Player">🗑</button>
-            </div>
+          <div style="padding: 24px 16px; text-align: center; color: #64748b; font-size: 0.95rem; font-weight: 600;">
+            No saved players found yet. Create a player below!
           </div>
         `;
-      });
-      html += `</div></div>`;
-      html += `<hr style="border-color:rgba(255,255,255,0.1); margin: 20px 0;">`;
-      html += `<h4 style="margin-bottom: 12px; font-size: 1.05rem; text-align: left;">Or Create New Player</h4>`;
-      html += `<input type="text" id="new-local-name" class="swal2-input glass-input" placeholder="Enter new player name" style="max-width: 100%; margin: 0; width: 100%;">`;
+      }
+      html += `</div>`;
+      html += `
+        <div class="create-local-section">
+          <div class="create-local-label">
+            <span>➕ OR CREATE NEW PLAYER PROFILE</span>
+          </div>
+          <input type="text" id="new-local-name" class="create-local-input" placeholder="Type new player name..." autocomplete="off">
+        </div>
+      `;
       
       window.selectLocalPlayer = (dbId, name) => {
         Swal.close();
@@ -278,15 +355,20 @@ $('add-local-btn').addEventListener('click', async () => {
         e.stopPropagation();
         const conf = await Swal.fire({
           title: 'Delete Player?',
-          text: "Are you sure you want to delete this player forever?",
+          text: "Are you sure you want to delete this player permanently?",
           icon: 'warning',
           showCancelButton: true,
           confirmButtonText: 'Yes, delete!',
-          
-          
-          
-          
-          
+          cancelButtonText: 'Cancel',
+          background: '#ffffff',
+          color: '#0f172a',
+          backdrop: 'rgba(15, 23, 42, 0.45)',
+          customClass: {
+            popup: 'ludo-modern-modal',
+            confirmButton: 'ludo-modal-btn-danger',
+            cancelButton: 'ludo-modal-btn-ghost'
+          },
+          buttonsStyling: false
         });
         if (conf.isConfirmed) {
           try {
@@ -298,22 +380,32 @@ $('add-local-btn').addEventListener('click', async () => {
       };
 
       Swal.fire({
-        title: 'Available Players',
+        title: '👥 Select Local Player',
         html: html,
         showCancelButton: true,
-        confirmButtonText: 'Create & Add',
+        confirmButtonText: '✨ Create & Deploy',
         cancelButtonText: 'Close',
-        background: 'rgba(18, 18, 35, 0.95)',
-        color: '#e0e0e0',
-        backdrop: 'rgba(0,0,0,0.85)',
+        background: '#ffffff',
+        color: '#0f172a',
+        backdrop: 'rgba(15, 23, 42, 0.45)',
         customClass: {
-          popup: 'glass-popup',
-          confirmButton: 'btn primary',
-          cancelButton: 'btn ghost',
-          input: 'glass-input'
+          popup: 'ludo-modern-modal',
+          confirmButton: 'ludo-modal-btn-primary',
+          cancelButton: 'ludo-modal-btn-ghost'
         },
-        width: 500,
-        
+        buttonsStyling: false,
+        width: 520,
+        didOpen: () => {
+          const input = document.getElementById('new-local-name');
+          if (input) {
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                Swal.clickConfirm();
+              }
+            });
+          }
+        },
         preConfirm: () => {
           const name = document.getElementById('new-local-name').value.trim();
           if (!name) {
@@ -1112,12 +1204,12 @@ socket.on('penaltyTripleSix', ({ color, penaltyToken, allTokens }) => {
     title: 'Triple 6 Penalty! 🚫',
     text: `${color} rolled three 6s in a row! Token sent back to cage.`,
     icon: 'warning',
-    background: 'rgba(18, 18, 35, 0.95)',
-    color: '#e0e0e0',
-    backdrop: 'rgba(0,0,0,0.85)',
+    background: '#ffffff',
+    color: '#0f172a',
+    backdrop: 'rgba(15, 23, 42, 0.45)',
     customClass: {
-      popup: 'glass-popup',
-      confirmButton: 'btn primary lg'
+      popup: 'ludo-modern-modal',
+      confirmButton: 'ludo-modal-btn-primary'
     },
     buttonsStyling: false
   });
@@ -1145,11 +1237,8 @@ socket.on('playerFinished', ({ color, name, rank, playerId }) => {
     timer: 5000,
     timerProgressBar: true,
     showConfirmButton: false,
-    background: 'rgba(18, 18, 35, 0.95)',
-    color: '#e0e0e0',
-    customClass: {
-      popup: 'glass-popup'
-    }
+    background: '#ffffff',
+    color: '#0f172a'
   });
 });
 
@@ -1159,34 +1248,75 @@ socket.on('gameOver', ({ rankings }) => {
   if (currentGameState) currentGameState.rankings = rankings;
   updateStatusCards(currentGameState.players, currentGameState.tokens, rankings);
 
-  const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣'];
-  let html = '<table style="width:100%;text-align:left;color:var(--text)">';
-  html += '<tr><th>Rank</th><th>Player</th><th>Color</th></tr>';
+  const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'];
+  const winner = (rankings && rankings.length > 0) ? rankings[0] : null;
+  const winnerColorInfo = winner ? (COLORS[winner.color] || { fill: '#0284c7', label: winner.color }) : null;
+
+  let html = '';
+  
+  if (winner) {
+    html += `
+      <div class="winner-hero-card">
+        <div class="winner-crown">👑</div>
+        <div class="winner-tag">VICTORY ROYALE · CHAMPION</div>
+        <div class="winner-champion-name">${winner.name}</div>
+        <div style="display: flex; justify-content: center; gap: 8px; align-items: center; margin-top: 4px;">
+          <div class="winner-suit-pill">
+            <span class="winner-color-dot" style="background: ${winnerColorInfo.fill}; box-shadow: 0 0 8px ${winnerColorInfo.fill};"></span>
+            <span style="color: #0f172a; font-weight: 800;">${winnerColorInfo.label || winner.color} Squad</span>
+          </div>
+          <span style="font-size: 0.8rem; font-weight: 700; color: #b45309; background: #fef3c7; padding: 4px 10px; border-radius: 999px; border: 1px solid #fde68a;">🥇 1st Place</span>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `<div class="podium-rankings-list">`;
   rankings.forEach((r, i) => {
-    html += `<tr><td>${medals[i]||i+1}</td><td>${r.name}</td><td style="color:${COLORS[r.color]?.fill||'#fff'}">${r.color}</td></tr>`;
+    const medal = medals[i] || `${i + 1}th`;
+    const colorInfo = COLORS[r.color] || { fill: '#64748b', label: r.color };
+    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+    const rankTitle = i === 0 ? 'Grand Champion' : i === 1 ? 'Runner Up' : i === 2 ? '3rd Place' : `${i + 1}th Place`;
+
+    html += `
+      <div class="podium-rank-card ${rankClass}">
+        <div class="podium-left">
+          <div class="podium-medal">${medal}</div>
+          <div style="display: flex; flex-direction: column; text-align: left;">
+            <span class="podium-player-name">${r.name}</span>
+            <span class="podium-rank-badge">${rankTitle}</span>
+          </div>
+        </div>
+        <div class="winner-suit-pill">
+          <span class="winner-color-dot" style="background: ${colorInfo.fill};"></span>
+          <span style="color: #334155; font-size: 0.8rem; font-weight: 700;">${colorInfo.label || r.color}</span>
+        </div>
+      </div>
+    `;
   });
-  html += '</table>';
+  html += `</div>`;
+
   Swal.fire({
-    title: '🎲 Game Over!',
+    title: '🏆 Match Concluded!',
     html: html,
-    icon: 'success',
-    confirmButtonText: 'Start New Game',
+    confirmButtonText: '⚔️ Start New Game',
     showCancelButton: true,
-    cancelButtonText: 'View Board',
-    background: 'rgba(18, 18, 35, 0.95)',
-    color: '#e0e0e0',
-    backdrop: 'rgba(0,0,0,0.85)',
+    cancelButtonText: '👀 View Board',
+    background: '#ffffff',
+    color: '#0f172a',
+    backdrop: 'rgba(15, 23, 42, 0.55)',
     customClass: {
-      popup: 'glass-popup',
-      confirmButton: 'btn primary lg',
-      cancelButton: 'btn ghost lg'
+      popup: 'ludo-modern-modal ludo-winner-modal',
+      confirmButton: 'ludo-modal-btn-primary',
+      cancelButton: 'ludo-modal-btn-ghost'
     },
-    buttonsStyling: false
+    buttonsStyling: false,
+    width: 520
   }).then((result) => {
     if (result.isConfirmed) {
       socket.emit('proposeRestart');
       if ($('restart-btn')) $('restart-btn').disabled = true;
-      toast('Restart proposed! Waiting for others...', 'info');
+      toast('Restart proposed! Waiting for other players...', 'info');
     }
   });
 });
@@ -1215,11 +1345,16 @@ if ($('force-restart-btn')) {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, restart!',
-      
-      
-      
-      
-      
+      cancelButtonText: 'Cancel',
+      background: '#ffffff',
+      color: '#0f172a',
+      backdrop: 'rgba(15, 23, 42, 0.45)',
+      customClass: {
+        popup: 'ludo-modern-modal',
+        confirmButton: 'ludo-modal-btn-danger',
+        cancelButton: 'ludo-modal-btn-ghost'
+      },
+      buttonsStyling: false
     }).then((res) => {
       if (res.isConfirmed) {
         socket.emit('forceRestart');
@@ -1236,11 +1371,16 @@ if ($('force-end-btn')) {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, end it!',
-      
-      
-      
-      
-      
+      cancelButtonText: 'Cancel',
+      background: '#ffffff',
+      color: '#0f172a',
+      backdrop: 'rgba(15, 23, 42, 0.45)',
+      customClass: {
+        popup: 'ludo-modern-modal',
+        confirmButton: 'ludo-modal-btn-danger',
+        cancelButton: 'ludo-modal-btn-ghost'
+      },
+      buttonsStyling: false
     }).then((result) => {
       if (result.isConfirmed) {
         socket.emit('forceEndGame');
@@ -1270,13 +1410,13 @@ socket.on('showRestartPrompt', ({ proposerName }) => {
     showCancelButton: true,
     confirmButtonText: 'Accept',
     cancelButtonText: 'Decline',
-    background: 'rgba(18, 18, 35, 0.95)',
-    color: '#e0e0e0',
-    backdrop: 'rgba(0,0,0,0.85)',
+    background: '#ffffff',
+    color: '#0f172a',
+    backdrop: 'rgba(15, 23, 42, 0.45)',
     customClass: {
-      popup: 'glass-popup',
-      confirmButton: 'btn primary lg',
-      cancelButton: 'btn ghost lg'
+      popup: 'ludo-modern-modal',
+      confirmButton: 'ludo-modal-btn-primary',
+      cancelButton: 'ludo-modal-btn-ghost'
     },
     buttonsStyling: false,
     allowOutsideClick: false
