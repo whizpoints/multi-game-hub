@@ -75,13 +75,16 @@ socket.on('identityUpdated', (newId) => {
   persistentId = newId;
 });
 
-// Neon Color palette
+// 8 Completely distinct, high-contrast vibrant color palettes
 const COLORS = {
-  Red:    { fill: '#e11d48', dark: '#be123c', glow: 'rgba(225,29,72,0.6)' },
-  Green:  { fill: '#059669', dark: '#047857', glow: 'rgba(5,150,105,0.6)' },
-  Blue:   { fill: '#2563eb', dark: '#1d4ed8', glow: 'rgba(37,99,235,0.6)' },
-  Yellow: { fill: '#d97706', dark: '#b45309', glow: 'rgba(217,119,6,0.6)' },
-  Purple: { fill: '#7c3aed', dark: '#6d28d9', glow: 'rgba(124,58,237,0.6)' }
+  Red:    { fill: '#ef4444', dark: '#b91c1c', glow: 'rgba(239,68,68,0.6)', label: 'Crimson' },
+  Green:  { fill: '#10b981', dark: '#047857', glow: 'rgba(16,185,129,0.6)', label: 'Emerald' },
+  Blue:   { fill: '#2563eb', dark: '#1d4ed8', glow: 'rgba(37,99,235,0.6)', label: 'Sapphire' },
+  Yellow: { fill: '#eab308', dark: '#a16207', glow: 'rgba(234,179,8,0.6)', label: 'Gold' },
+  Purple: { fill: '#8b5cf6', dark: '#6d28d9', glow: 'rgba(139,92,246,0.6)', label: 'Amethyst' },
+  Orange: { fill: '#f97316', dark: '#c2410c', glow: 'rgba(249,115,22,0.6)', label: 'Blaze' },
+  Cyan:   { fill: '#06b6d4', dark: '#0e7490', glow: 'rgba(6,182,212,0.6)', label: 'Turquoise' },
+  Pink:   { fill: '#ec4899', dark: '#be185d', glow: 'rgba(236,72,153,0.6)', label: 'Magenta' }
 };
 
 const $ = id => document.getElementById(id);
@@ -402,13 +405,15 @@ socket.on('lobbyUpdate', (data) => {
     let removeBtn = '';
 
     if (canEdit) {
-      const allColors = ['Red', 'Green', 'Blue', 'Yellow'];
+      const allColors = Object.keys(COLORS);
       const takenColors = playersList.filter(x => x.id !== p.id).map(x => x.color);
       let options = '';
       allColors.forEach(colorName => {
         const disabled = takenColors.includes(colorName) ? 'disabled' : '';
         const selected = p.color === colorName ? 'selected' : '';
-        options += `<option value="${colorName}" ${disabled} ${selected}>${colorName}</option>`;
+        const clrInfo = COLORS[colorName];
+        const clrLabel = clrInfo && clrInfo.label ? `${colorName} (${clrInfo.label})` : colorName;
+        options += `<option value="${colorName}" ${disabled} ${selected}>${clrLabel}</option>`;
       });
       colorSelect = `<select class="glass-input small-select" onchange="window.changePlayerColor('${p.id}', this.value)" style="color:${c.fill};font-weight:700; background: rgba(0,0,0,0.3); border: none; padding: 2px 5px; border-radius: 4px; outline: none; margin-left: 10px;">${options}</select>`;
       
@@ -535,7 +540,15 @@ async function enterGame(data) {
   currentGameState = data;
   myColors = data.players.filter(p => p.id === persistentId || p.hostId === persistentId).map(p => p.color);
 
-  if (!boardConfig) boardConfig = await (await fetch('/api/board-config')).json();
+  try {
+    const res = await fetch('/api/board-config');
+    boardConfig = await res.json();
+  } catch (err) {
+    console.warn('Could not fetch /api/board-config, using fallback:', err);
+  }
+  if (!boardConfig) boardConfig = {};
+  if (data.basePos) boardConfig.basePos = data.basePos;
+  if (data.triangleDefs) boardConfig.triangleDefs = data.triangleDefs;
   boardConfig.tokensPerPlayer = data.tokensPerPlayer || 4;
 
   renderBoard(data.players);
@@ -594,11 +607,12 @@ function renderBoard(players) {
   svg.appendChild(svgEl('rect', { width: 900, height: 900, fill: 'rgba(255, 255, 255, 0.5)', rx: 16 }));
 
   // ── Bases ──
-  const basePos = { Red: {x:0,y:0}, Green: {x:540,y:0}, Blue: {x:540,y:540}, Yellow: {x:0,y:540} };
-  activeColors.forEach(color => {
-    const bp = basePos[color];
+  const basePos = (boardConfig && boardConfig.basePos) || { Red: {x:0,y:0}, Green: {x:540,y:0}, Blue: {x:540,y:540}, Yellow: {x:0,y:540} };
+  const cornerDefaults = [{x:0,y:0}, {x:540,y:0}, {x:540,y:540}, {x:0,y:540}];
+  activeColors.forEach((color, idx) => {
+    const bp = basePos[color] || cornerDefaults[idx % 4];
     if (!bp) return;
-    const c = COLORS[color];
+    const c = COLORS[color] || { fill: '#888' };
     // Outer base
     svg.appendChild(svgEl('rect', {
       x: bp.x+10, y: bp.y+10, width: 340, height: 340,
@@ -612,7 +626,8 @@ function renderBoard(players) {
     }));
     
     // Cages using perfectly centered pixel coords
-    boardConfig.CAGE_PIXELS[color].slice(0, boardConfig.tokensPerPlayer).forEach(pos => {
+    const cageList = (boardConfig && boardConfig.CAGE_PIXELS && boardConfig.CAGE_PIXELS[color]) || [];
+    cageList.slice(0, boardConfig.tokensPerPlayer || 4).forEach(pos => {
       svg.appendChild(svgEl('circle', {
         cx: pos.x, cy: pos.y, r: 26,
         fill: 'rgba(0,0,0,0.03)', stroke: c.fill, 'stroke-opacity': 0.6, 'stroke-width': 2
@@ -627,8 +642,8 @@ function renderBoard(players) {
     let strokeColor = 'rgba(0,0,0,0.1)';
     for (const [clr, idx] of Object.entries(boardConfig.COLOR_START)) {
       if (idx === i && activeColors.includes(clr)) {
-        fillColor = COLORS[clr].fill + '40';
-        strokeColor = COLORS[clr].fill;
+        fillColor = (COLORS[clr] ? COLORS[clr].fill : '#888') + '40';
+        strokeColor = COLORS[clr] ? COLORS[clr].fill : '#888';
       }
     }
     svg.appendChild(svgEl('rect', {
@@ -645,8 +660,8 @@ function renderBoard(players) {
 
   // ── Home columns ──
   activeColors.forEach(color => {
-    const c = COLORS[color];
-    if (!boardConfig.HOME_COLUMNS[color]) return;
+    const c = COLORS[color] || { fill: '#888' };
+    if (!boardConfig.HOME_COLUMNS || !boardConfig.HOME_COLUMNS[color]) return;
     boardConfig.HOME_COLUMNS[color].forEach(pos => {
       const p = px(pos.row, pos.col);
       svg.appendChild(svgEl('rect', {
@@ -659,18 +674,25 @@ function renderBoard(players) {
 
   // ── Center home triangle ──
   const cx = 7 * CELL + 30, cy = 7 * CELL + 30;
-  const triangleDefs = {
+  const triangleDefs = (boardConfig && boardConfig.triangleDefs) || {
     Red:    `${6*CELL},${6*CELL} ${6*CELL},${9*CELL} ${7.5*CELL},${7.5*CELL}`,
     Green:  `${6*CELL},${6*CELL} ${9*CELL},${6*CELL} ${7.5*CELL},${7.5*CELL}`,
     Blue:   `${9*CELL},${9*CELL} ${9*CELL},${6*CELL} ${7.5*CELL},${7.5*CELL}`,
     Yellow: `${9*CELL},${9*CELL} ${6*CELL},${9*CELL} ${7.5*CELL},${7.5*CELL}`
   };
-  activeColors.forEach(color => {
-    if (!triangleDefs[color]) return;
+  const fallbackTris = [
+    `${6*CELL},${6*CELL} ${6*CELL},${9*CELL} ${7.5*CELL},${7.5*CELL}`,
+    `${6*CELL},${6*CELL} ${9*CELL},${6*CELL} ${7.5*CELL},${7.5*CELL}`,
+    `${9*CELL},${9*CELL} ${9*CELL},${6*CELL} ${7.5*CELL},${7.5*CELL}`,
+    `${9*CELL},${9*CELL} ${6*CELL},${9*CELL} ${7.5*CELL},${7.5*CELL}`
+  ];
+  activeColors.forEach((color, idx) => {
+    const pts = triangleDefs[color] || fallbackTris[idx % 4];
+    const c = COLORS[color] || { fill: '#888' };
     svg.appendChild(svgEl('polygon', {
-      points: triangleDefs[color],
-      fill: COLORS[color].fill, 'fill-opacity': 0.6,
-      stroke: COLORS[color].fill, 'stroke-width': 1, 'stroke-opacity': 0.8
+      points: pts,
+      fill: c.fill, 'fill-opacity': 0.6,
+      stroke: c.fill, 'stroke-width': 1, 'stroke-opacity': 0.8
     }));
   });
   svg.appendChild(svgEl('circle', {

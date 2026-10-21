@@ -77,8 +77,9 @@ app.get('/api/server-info', (req, res) => {
 });
 
 
-// ── BOARD CONSTANTS ──────────────────────────────────────────────────────────
-const COLORS = ['Red', 'Green', 'Blue', 'Yellow'];
+// ── BOARD CONSTANTS & DIVERSE DISTINCT COLOR PALETTES ─────────────────────────
+const ALL_LUDO_COLORS = ['Red', 'Green', 'Blue', 'Yellow', 'Purple', 'Orange', 'Cyan', 'Pink'];
+const COLORS = ALL_LUDO_COLORS;
 
 // 15×15 grid. Common path: 52 squares {row,col} going clockwise.
 const COMMON_PATH = [
@@ -96,34 +97,121 @@ const COMMON_PATH = [
   {row:7,col:0},{row:6,col:0}                                                         
 ];
 
-const COLOR_START = { Red: 0, Green: 13, Blue: 26, Yellow: 39 };
-const HOME_ENTRY_INDEX = { Red: 50, Green: 11, Blue: 24, Yellow: 37 };
+const CORNER_SEATS = [
+  {
+    name: 'TopLeft',
+    start: 0,
+    homeEntry: 50,
+    homeColumns: [{row:7,col:1},{row:7,col:2},{row:7,col:3},{row:7,col:4},{row:7,col:5}],
+    cagePixels: [{x:130,y:130},{x:230,y:130},{x:130,y:230},{x:230,y:230},{x:130,y:180},{x:230,y:180}],
+    homePixels: [{x:385,y:450},{x:385,y:420},{x:385,y:480},{x:415,y:435},{x:415,y:465},{x:435,y:450}],
+    basePos: { x: 0, y: 0 },
+    tri: '360,360 360,540 450,450'
+  },
+  {
+    name: 'TopRight',
+    start: 13,
+    homeEntry: 11,
+    homeColumns: [{row:1,col:7},{row:2,col:7},{row:3,col:7},{row:4,col:7},{row:5,col:7}],
+    cagePixels: [{x:670,y:130},{x:770,y:130},{x:670,y:230},{x:770,y:230},{x:670,y:180},{x:770,y:180}],
+    homePixels: [{x:450,y:385},{x:420,y:385},{x:480,y:385},{x:435,y:415},{x:465,y:415},{x:450,y:435}],
+    basePos: { x: 540, y: 0 },
+    tri: '360,360 540,360 450,450'
+  },
+  {
+    name: 'BottomRight',
+    start: 26,
+    homeEntry: 24,
+    homeColumns: [{row:7,col:13},{row:7,col:12},{row:7,col:11},{row:7,col:10},{row:7,col:9}],
+    cagePixels: [{x:670,y:670},{x:770,y:670},{x:670,y:770},{x:770,y:770},{x:670,y:720},{x:770,y:720}],
+    homePixels: [{x:515,y:450},{x:515,y:480},{x:515,y:420},{x:485,y:465},{x:485,y:435},{x:465,y:450}],
+    basePos: { x: 540, y: 540 },
+    tri: '540,540 540,360 450,450'
+  },
+  {
+    name: 'BottomLeft',
+    start: 39,
+    homeEntry: 37,
+    homeColumns: [{row:13,col:7},{row:12,col:7},{row:11,col:7},{row:10,col:7},{row:9,col:7}],
+    cagePixels: [{x:130,y:670},{x:230,y:670},{x:130,y:770},{x:230,y:770},{x:130,y:720},{x:230,y:720}],
+    homePixels: [{x:450,y:515},{x:480,y:515},{x:420,y:515},{x:465,y:485},{x:435,y:485},{x:450,y:465}],
+    basePos: { x: 0, y: 540 },
+    tri: '540,540 360,540 450,450'
+  }
+];
 
-const HOME_COLUMNS = {
-  Red:    [{row:7,col:1},{row:7,col:2},{row:7,col:3},{row:7,col:4},{row:7,col:5}],
-  Green:  [{row:1,col:7},{row:2,col:7},{row:3,col:7},{row:4,col:7},{row:5,col:7}],
-  Blue:   [{row:7,col:13},{row:7,col:12},{row:7,col:11},{row:7,col:10},{row:7,col:9}],
-  Yellow: [{row:13,col:7},{row:12,col:7},{row:11,col:7},{row:10,col:7},{row:9,col:7}]
-};
+const COLOR_START = {};
+const HOME_ENTRY_INDEX = {};
+const HOME_COLUMNS = {};
+const CAGE_PIXELS = {};
+const HOME_PIXELS = {};
+const DEFAULT_BASE_POS = {};
+const DEFAULT_TRI_DEFS = {};
+
+// Initialize default mapping for all colors
+ALL_LUDO_COLORS.forEach((color, idx) => {
+  const seat = CORNER_SEATS[idx % CORNER_SEATS.length];
+  COLOR_START[color] = seat.start;
+  HOME_ENTRY_INDEX[color] = seat.homeEntry;
+  HOME_COLUMNS[color] = seat.homeColumns;
+  CAGE_PIXELS[color] = seat.cagePixels;
+  HOME_PIXELS[color] = seat.homePixels;
+  DEFAULT_BASE_POS[color] = seat.basePos;
+  DEFAULT_TRI_DEFS[color] = seat.tri;
+});
 
 const HOME_CENTER = {row:7, col:7};
 const SAFE_SQUARES = [0, 8, 13, 21, 26, 34, 39, 47];
 
-// Perfectly centered pixel coordinates for cages
-const CAGE_PIXELS = {
-  Red:    [{x:130,y:130},{x:230,y:130},{x:130,y:230},{x:230,y:230},{x:130,y:180},{x:230,y:180}],
-  Green:  [{x:670,y:130},{x:770,y:130},{x:670,y:230},{x:770,y:230},{x:670,y:180},{x:770,y:180}],
-  Yellow: [{x:130,y:670},{x:230,y:670},{x:130,y:770},{x:230,y:770},{x:130,y:720},{x:230,y:720}],
-  Blue:   [{x:670,y:670},{x:770,y:670},{x:670,y:770},{x:770,y:770},{x:670,y:720},{x:770,y:720}]
-};
+function applyDynamicSeats() {
+  const basePos = { ...DEFAULT_BASE_POS };
+  const triangleDefs = { ...DEFAULT_TRI_DEFS };
+  
+  gs.turnOrder.forEach((pid, idx) => {
+    const p = gs.players[pid];
+    if (!p) return;
+    const seatIdx = (typeof p.seatIndex === 'number') ? p.seatIndex : (idx % 4);
+    p.seatIndex = seatIdx;
+    const seat = CORNER_SEATS[seatIdx];
+    const c = p.color;
+    
+    COLOR_START[c] = seat.start;
+    HOME_ENTRY_INDEX[c] = seat.homeEntry;
+    HOME_COLUMNS[c] = seat.homeColumns;
+    CAGE_PIXELS[c] = seat.cagePixels;
+    HOME_PIXELS[c] = seat.homePixels;
+    basePos[c] = seat.basePos;
+    triangleDefs[c] = seat.tri;
+  });
 
-// Coordinates for pawns that have reached HOME (inside the center triangles)
-const HOME_PIXELS = {
-  Red:    [{x:385,y:450},{x:385,y:420},{x:385,y:480},{x:415,y:435},{x:415,y:465},{x:435,y:450}],
-  Green:  [{x:450,y:385},{x:420,y:385},{x:480,y:385},{x:435,y:415},{x:465,y:415},{x:450,y:435}],
-  Blue:   [{x:515,y:450},{x:515,y:480},{x:515,y:420},{x:485,y:465},{x:485,y:435},{x:465,y:450}],
-  Yellow: [{x:450,y:515},{x:480,y:515},{x:420,y:515},{x:465,y:485},{x:435,y:485},{x:450,y:465}]
-};
+  return { basePos, triangleDefs };
+}
+
+function randomizeAndAssignPlayerColors() {
+  const activePids = gs.turnOrder.filter(pid => gs.players[pid] && (gs.players[pid].connected || gs.players[pid].isBot));
+  if (activePids.length === 0) return;
+
+  // Shuffle all distinct colors
+  const shuffledColors = [...ALL_LUDO_COLORS];
+  for (let i = shuffledColors.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(0, i + 1);
+    [shuffledColors[i], shuffledColors[j]] = [shuffledColors[j], shuffledColors[i]];
+  }
+
+  // Shuffle active player order so turn starting player is also random
+  for (let i = activePids.length - 1; i > 0; i--) {
+    const j = crypto.randomInt(0, i + 1);
+    [activePids[i], activePids[j]] = [activePids[j], activePids[i]];
+  }
+
+  activePids.forEach((pid, idx) => {
+    gs.players[pid].color = shuffledColors[idx];
+    gs.players[pid].seatIndex = idx % 4;
+  });
+
+  gs.turnOrder = activePids;
+  applyDynamicSeats();
+}
 
 // ── GAME STATE ───────────────────────────────────────────────────────────────
 function freshGameState() {
@@ -236,6 +324,7 @@ function playersArray() {
       id: pid,
       name: p.name,
       color: p.color,
+      seatIndex: (typeof p.seatIndex === 'number') ? p.seatIndex : 0,
       connected: p.connected,
       hostId: p.hostId,
       isBot: isBot,
@@ -536,7 +625,20 @@ app.get('/api/analytics', (_req, res) => {
 });
 
 app.get('/api/board-config', (_req, res) => {
-  res.json({ COMMON_PATH, COLOR_START, HOME_ENTRY_INDEX, HOME_COLUMNS, HOME_CENTER, SAFE_SQUARES, CAGE_PIXELS, HOME_PIXELS });
+  const dynamicSeats = applyDynamicSeats();
+  res.json({
+    COMMON_PATH,
+    COLOR_START,
+    HOME_ENTRY_INDEX,
+    HOME_COLUMNS,
+    HOME_CENTER,
+    SAFE_SQUARES,
+    CAGE_PIXELS,
+    HOME_PIXELS,
+    basePos: dynamicSeats.basePos,
+    triangleDefs: dynamicSeats.triangleDefs,
+    ALL_LUDO_COLORS
+  });
 });
 
 app.delete('/api/players/:id', (req, res) => {
@@ -764,17 +866,25 @@ io.on('connection', (socket) => {
   // ─── START GAME ───
   socket.on('startGame', () => {
     if (gs.status !== 'LOBBY' || gs.turnOrder.length < 2) return;
+
+    // Randomize colors and seats on every game start!
+    randomizeAndAssignPlayerColors();
+
     gs.status = 'PLAYING';
     gs.currentTurnIndex = 0;
+    gs.tokens = {};
     for (const pid of gs.turnOrder) {
       gs.tokens[gs.players[pid].color] = Array(gs.tokensPerPlayer).fill(0);
     }
     const currentPid = gs.turnOrder[0];
+    const boardSeatData = applyDynamicSeats();
     io.emit('gameStarted', {
       players: playersArray(),
       tokens: gs.tokens,
       turn: { color: gs.players[currentPid].color, name: gs.players[currentPid].name },
-      tokensPerPlayer: gs.tokensPerPlayer
+      tokensPerPlayer: gs.tokensPerPlayer,
+      basePos: boardSeatData.basePos,
+      triangleDefs: boardSeatData.triangleDefs
     });
     io.emit('turnChanged', { color: currentColor(), name: gs.players[currentPid].name });
     if (gs.players[currentPid].isBot) {
@@ -850,24 +960,22 @@ io.on('connection', (socket) => {
       const oldHostPid = gs.hostPersistentId;
       const oldHostSocket = gs.hostSocketId;
       
-      // We must reset the object properties completely or re-assign
+      // Reset game state
       Object.assign(gs, freshGameState());
       gs.tokensPerPlayer = oldTokens;
       gs.hostPersistentId = oldHostPid;
       gs.hostSocketId = oldHostSocket;
-      // Shuffle colors among players
-      const availableColors = [...COLORS];
-      for (let i = availableColors.length - 1; i > 0; i--) {
-        const j = crypto.randomInt(0, i + 1);
-        [availableColors[i], availableColors[j]] = [availableColors[j], availableColors[i]];
-      }
-      let colorIdx = 0;
+      
       oldOrder.forEach(pid => {
-        if (oldPlayers[pid].connected) {
-          gs.players[pid] = { ...oldPlayers[pid], hasVotedRestart: false, color: availableColors[colorIdx++] };
+        if (oldPlayers[pid] && (oldPlayers[pid].connected || oldPlayers[pid].isBot)) {
+          gs.players[pid] = { ...oldPlayers[pid], hasVotedRestart: false };
           gs.turnOrder.push(pid);
         }
       });
+
+      // Randomize colors and seats on restart!
+      randomizeAndAssignPlayerColors();
+
       io.emit('gameRestarted');
       emitLobbyUpdate();
     }
@@ -899,19 +1007,17 @@ io.on('connection', (socket) => {
       gs.tokensPerPlayer = oldTokens;
       gs.hostPersistentId = oldHostPid;
       gs.hostSocketId = oldHostSocket;
-      // Shuffle colors among players
-      const availableColors = [...COLORS];
-      for (let i = availableColors.length - 1; i > 0; i--) {
-        const j = crypto.randomInt(0, i + 1);
-        [availableColors[i], availableColors[j]] = [availableColors[j], availableColors[i]];
-      }
-      let colorIdx = 0;
+      
       oldOrder.forEach(pid => {
-        if (oldPlayers[pid].connected || oldPlayers[pid].isBot) {
-          gs.players[pid] = { ...oldPlayers[pid], hasVotedRestart: false, color: availableColors[colorIdx++] };
+        if (oldPlayers[pid] && (oldPlayers[pid].connected || oldPlayers[pid].isBot)) {
+          gs.players[pid] = { ...oldPlayers[pid], hasVotedRestart: false };
           gs.turnOrder.push(pid);
         }
       });
+
+      // Randomize colors and seats on restart!
+      randomizeAndAssignPlayerColors();
+
       io.emit('gameRestarted');
       emitLobbyUpdate();
     }

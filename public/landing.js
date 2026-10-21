@@ -221,17 +221,17 @@ function renderWinratesChart(players) {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: { color: '#cbd5e1', font: { family: 'Rajdhani', weight: 700, size: 12 } }
+          labels: { color: '#1e293b', font: { family: 'Rajdhani', weight: 700, size: 12 } }
         }
       },
       scales: {
         x: {
-          ticks: { color: '#94a3b8', font: { family: 'Rajdhani', weight: 700, size: 12 } },
-          grid: { color: 'rgba(255,255,255,0.05)' }
+          ticks: { color: '#334155', font: { family: 'Rajdhani', weight: 700, size: 12 } },
+          grid: { color: 'rgba(0,0,0,0.06)' }
         },
         y: {
-          ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 } },
-          grid: { color: 'rgba(255,255,255,0.05)' }
+          ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.06)' }
         }
       }
     }
@@ -266,14 +266,14 @@ function renderTiersChart(tierCounts) {
           '#ef4444',
           '#f59e0b',
           '#a855f7',
-          '#38bdf8',
+          '#0284c7',
           '#10b981',
           '#eab308',
           '#94a3b8',
           '#b45309'
         ],
         borderWidth: 2,
-        borderColor: '#07090e'
+        borderColor: '#ffffff'
       }]
     },
     options: {
@@ -282,7 +282,7 @@ function renderTiersChart(tierCounts) {
       plugins: {
         legend: {
           position: 'right',
-          labels: { color: '#cbd5e1', font: { family: 'Rajdhani', weight: 700, size: 11 } }
+          labels: { color: '#1e293b', font: { family: 'Rajdhani', weight: 700, size: 11 } }
         }
       }
     }
