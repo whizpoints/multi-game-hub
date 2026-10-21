@@ -1185,7 +1185,7 @@ function updateControls(state) {
             } else {
                 gridEl.style.gridTemplateColumns = 'repeat(4, 1fr)';
             }
-            gridEl.style.gap = '10px';
+            gridEl.style.gap = '14px';
             
             humanPlayers.forEach(p => {
                 const isActive = (state.auction.activeBidders || []).includes(p.uuid);
@@ -1198,45 +1198,51 @@ function updateControls(state) {
                 card.className = 'auction-card';
                 card.style.cssText = `
                     background: ${isLeader ? '#fffbeb' : (isActive ? '#ffffff' : '#f8fafc')};
-                    border: 1.5px solid ${isLeader ? '#f59e0b' : (isActive ? '#0284c7' : '#cbd5e1')};
-                    border-radius: 12px;
-                    padding: 9px 11px;
+                    border: 2px solid ${isLeader ? '#f59e0b' : (isActive ? '#0284c7' : '#cbd5e1')};
+                    border-radius: 16px;
+                    padding: 16px 18px;
                     display: flex;
                     flex-direction: column;
-                    gap: 6px;
-                    box-shadow: ${isLeader ? '0 4px 14px rgba(245, 158, 11, 0.22)' : '0 2px 6px rgba(0,0,0,0.04)'};
+                    gap: 12px;
+                    box-shadow: ${isLeader ? '0 6px 20px rgba(245, 158, 11, 0.28)' : '0 4px 14px rgba(15, 23, 42, 0.06)'};
                     opacity: ${isActive ? '1' : '0.45'};
                     transition: all 0.2s;
                     text-align: left;
+                    min-height: 145px;
                 `;
 
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 6px; text-align: left; overflow: hidden; flex: 1;">
-                            <span class="token-icon" style="width: 20px; height: 20px; min-width: 20px; max-width: 20px; display: inline-flex; align-items: center; justify-content: center; color: ${p.color}; flex-shrink: 0; overflow: hidden;">${p.symbol || '🎩'}</span>
+                        <div style="display: flex; align-items: center; gap: 8px; text-align: left; overflow: hidden; flex: 1;">
+                            <span class="token-icon" style="width: 26px; height: 26px; min-width: 26px; max-width: 26px; display: inline-flex; align-items: center; justify-content: center; color: ${p.color}; flex-shrink: 0; overflow: hidden;">${p.symbol || '🎩'}</span>
                             <div style="overflow: hidden; flex: 1;">
-                                <div style="font-weight: 800; font-size: 0.85rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;" title="${p.username}">${p.username}</div>
-                                <div style="font-size: 0.75rem; color: #16a34a; font-weight: 900;">$${Math.round(p.cash).toLocaleString()}</div>
+                                <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="${p.username}">${p.username}</div>
+                                <div style="font-size: 0.95rem; color: #16a34a; font-weight: 900;">$${Math.round(p.cash).toLocaleString()}</div>
                             </div>
                         </div>
-                        <span style="font-size: 0.62rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px; background: ${isLeader ? '#f59e0b' : (isActive ? '#dcfce7' : '#fee2e2')}; color: ${isLeader ? '#ffffff' : (isActive ? '#15803d' : '#b91c1c')}; border: 1px solid ${isLeader ? '#d97706' : (isActive ? '#86efac' : '#fca5a5')}; flex-shrink: 0;">
+                        <span style="font-size: 0.7rem; font-weight: 900; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; background: ${isLeader ? '#f59e0b' : (isActive ? '#dcfce7' : '#fee2e2')}; color: ${isLeader ? '#ffffff' : (isActive ? '#15803d' : '#b91c1c')}; border: 1px solid ${isLeader ? '#d97706' : (isActive ? '#86efac' : '#fca5a5')}; flex-shrink: 0;">
                             ${isLeader ? '👑 LEADER' : (isActive ? 'ACTIVE' : 'FOLDED')}
                         </span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
-                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: 1px solid #3b82f6; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next10) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                    <!-- Spacious Bid Buttons with Generous Touch Targets -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                        <button class="glass-btn" style="padding: 10px 0; min-height: 42px; font-size: 0.92rem; font-weight: 900; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: 1px solid #3b82f6; border-radius: 8px; cursor: pointer; transition: all 0.2s; ${(!isActive || p.cash < next10) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${(!isActive || p.cash < next10) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 10)">+$10</button>
-                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: 1px solid #8b5cf6; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next50) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn" style="padding: 10px 0; min-height: 42px; font-size: 0.92rem; font-weight: 900; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: 1px solid #8b5cf6; border-radius: 8px; cursor: pointer; transition: all 0.2s; ${(!isActive || p.cash < next50) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${(!isActive || p.cash < next50) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 50)">+$50</button>
-                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: 1px solid #38bdf8; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next100) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn" style="padding: 10px 0; min-height: 42px; font-size: 0.92rem; font-weight: 900; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: 1px solid #38bdf8; border-radius: 8px; cursor: pointer; transition: all 0.2s; ${(!isActive || p.cash < next100) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${(!isActive || p.cash < next100) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 100)">+$100</button>
-                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: 1px solid #ef4444; border-radius: 6px; cursor: pointer; ${!isActive ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                    </div>
+
+                    <!-- Distinct Separate Fold / Pass Button to completely prevent misclicks -->
+                    <div>
+                        <button class="glass-btn" style="width: 100%; padding: 8px 0; min-height: 34px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.5px; background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 8px; cursor: pointer; transition: all 0.2s; ${!isActive ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${!isActive ? 'disabled' : ''} 
-                            onclick="window.foldForPlayer('${p.uuid}')">FOLD</button>
+                            onclick="window.foldForPlayer('${p.uuid}')">✕ FOLD AUCTION</button>
                     </div>
                 `;
                 gridEl.appendChild(card);
@@ -1267,7 +1273,6 @@ function updateControls(state) {
 
     const inGameControlsEl = document.getElementById('in-game-controls');
     const sidebarActionBar = document.getElementById('sidebar-action-bar');
-    const centerInGameActions = document.getElementById('center-in-game-actions');
     const lobbyNetworkCard = document.getElementById('lobby-network-card');
     const quitLobbyBtn = document.getElementById('quit-lobby-btn');
 
@@ -1275,7 +1280,6 @@ function updateControls(state) {
         if (hostControlsEl) hostControlsEl.classList.remove('hidden');
         if (inGameControlsEl) inGameControlsEl.classList.add('hidden');
         if (sidebarActionBar) sidebarActionBar.style.display = 'none';
-        if (centerInGameActions) centerInGameActions.style.display = 'none';
         if (lobbyNetworkCard) {
             lobbyNetworkCard.classList.remove('hidden');
             lobbyNetworkCard.style.display = 'block';
@@ -1287,7 +1291,6 @@ function updateControls(state) {
             inGameControlsEl.style.display = 'flex';
         }
         if (sidebarActionBar) sidebarActionBar.style.display = 'flex';
-        if (centerInGameActions) centerInGameActions.style.display = 'flex';
         if (lobbyNetworkCard) {
             lobbyNetworkCard.classList.add('hidden');
             lobbyNetworkCard.style.display = 'none';

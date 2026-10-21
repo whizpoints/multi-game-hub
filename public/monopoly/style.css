@@ -634,13 +634,18 @@ body {
 #auction-players-grid svg,
 #auction-leader svg,
 .auction-card svg {
-    width: 20px !important;
-    height: 20px !important;
-    max-width: 20px !important;
-    max-height: 20px !important;
+    width: 22px !important;
+    height: 22px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
     display: inline-block !important;
     vertical-align: middle !important;
     flex-shrink: 0 !important;
+}
+
+.auction-card .token-icon svg {
+    width: 24px !important;
+    height: 24px !important;
 }
 
 /* Mortgaged Overlay - sits over tile background, strictly below player tokens (z:100) and badges (z:30) */
