@@ -391,45 +391,249 @@ window.promptEditName = function() {
 
 function renderPlayersList(state) {
     const list = document.getElementById('players-list');
-    if (!list) return;
-    list.innerHTML = '';
-    
+    if (list) {
+        list.innerHTML = '';
+        
+        state.turnOrder.forEach((uuid, idx) => {
+            const player = state.players[uuid];
+            if (!player) return;
+            
+            const isMyTurn = (state.currentTurnIndex === idx);
+            const isYou = (uuid === myUuid);
+            const tierName = player.tier || 'PLATINUM';
+            const tierIcon = player.tierIcon || '🛡️';
+            const tierColor = player.tierColor || '#10b981';
+            
+            const html = `
+            <div class="player-card" data-uuid="${uuid}" style="${isMyTurn ? 'border: 2px solid #00f0ff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); transform: scale(1.02);' : 'border: 1px solid rgba(255,255,255,0.08);'} background: #131b2e; color: #fff; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; position: relative;">
+                <div style="width: 4px; background: ${player.color}; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 10px 0 0 10px;"></div>
+                <div style="display: flex; flex-direction: column; width: 100%; gap: 4px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; max-width: 80%;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${player.color}; color: ${player.color}; flex-shrink: 0; font-size: 0.95rem;">${player.symbol || '🎩'}</span>
+                            <span style="font-weight: 800; font-size: 0.8rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${player.username} ${isYou ? '<span style="color:#00f0ff; font-size:0.7rem;">(You)</span>' : ''}</span>
+                        </div>
+                        <div style="display: flex; gap: 3px; align-items: center; flex-shrink: 0;">
+                            ${state.status === 'LOBBY' && uuid === myUuid ? `<button onclick="window.promptEditName()" style="background: transparent; border: none; color: #38bdf8; font-size: 0.85rem; cursor: pointer; padding: 0 2px;" title="Edit Name">✎</button>` : ''}
+                            ${state.status === 'LOBBY' && uuid !== myUuid ? `<button onclick="window.socket.emit('removePlayer', '${uuid}')" style="background: transparent; border: none; color: #ef4444; font-size: 1rem; cursor: pointer; padding: 0 2px;" title="Remove Player">&times;</button>` : ''}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.65rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: ${tierColor}22; color: ${tierColor}; border: 1px solid ${tierColor}55;">
+                            ${tierIcon} ${tierName}
+                        </span>
+                        ${player.verified ? `<span style="font-size: 0.62rem; font-weight: 900; padding: 1px 5px; border-radius: 999px; background: rgba(0,240,255,0.15); border: 1px solid #00f0ff; color: #00f0ff;">✓ PRO</span>` : ''}
+                        ${player.isBot ? `<span style="font-size: 0.62rem; font-weight: 800; padding: 1px 5px; border-radius: 999px; background: rgba(168,85,247,0.18); border: 1px solid #a855f7; color: #d8b4fe;">🤖 ${player.botTrait || 'AI'}</span>` : ''}
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+                        <span style="font-size: 0.85rem; font-weight: 900; color: #22c55e;">$${Math.round(player.cash).toLocaleString()}</span>
+                        <span style="font-size: 0.65rem; color: #94a3b8; font-weight: 700;">${player.inJail ? '🔒 In Jail' : (isMyTurn ? '⚡ TURN' : 'WAITING')}</span>
+                    </div>
+                </div>
+            </div>
+            `;
+            
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html;
+            list.appendChild(wrapper.firstElementChild);
+        });
+        
+        // If in lobby and we're the host, append an 'Empty Slot' button at the bottom of the list
+        if (state.status === 'LOBBY' && state.turnOrder.length < 8) {
+            const addHtml = `
+            <div class="player-card" style="border: 2px dashed rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 10px; border-radius: 8px;" onclick="window.showAddLocalPlayerModal()">
+                <span style="font-weight: 800; font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">+ Add Local Player</span>
+            </div>
+            `;
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = addHtml;
+            list.appendChild(wrapper.firstElementChild);
+        }
+    }
+
+    // Also update the full PUBG Squad Ready Room overlay
+    renderPubgLobbyOverlay(state);
+}
+
+function renderPubgLobbyOverlay(state) {
+    const overlay = document.getElementById('monopoly-pubg-lobby-overlay');
+    if (!overlay) return;
+
+    if (state.status !== 'LOBBY') {
+        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
+        return;
+    }
+
+    overlay.classList.remove('hidden');
+    overlay.style.display = 'flex';
+
+    // Update player count display
+    const countEl = document.getElementById('monopoly-lobby-player-count');
+    if (countEl) countEl.textContent = state.turnOrder.length;
+
+    // Update Wi-Fi Link input
+    const shareInput = document.getElementById('monopoly-lobby-share-input');
+    if (shareInput) {
+        shareInput.value = window.location.origin + '/monopoly';
+    }
+
+    const copyBtn = document.getElementById('monopoly-lobby-copy-btn');
+    if (copyBtn) {
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(shareInput.value).then(() => {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+            });
+        };
+    }
+
+    // Deploy Button / Host Waiting Message
+    const deployBtn = document.getElementById('monopoly-deploy-btn');
+    const waitingMsg = document.getElementById('monopoly-lobby-waiting-msg');
+    const isHost = (state.host === myUuid);
+
+    if (deployBtn && waitingMsg) {
+        if (isHost) {
+            deployBtn.style.display = 'block';
+            waitingMsg.style.display = 'none';
+            deployBtn.onclick = () => {
+                if (window.SoundFX && window.SoundFX.rollDice) window.SoundFX.rollDice();
+                document.getElementById('start-game-btn')?.click();
+            };
+        } else {
+            deployBtn.style.display = 'none';
+            waitingMsg.style.display = 'block';
+        }
+    }
+
+    // Wire up quick add buttons
+    const addBotBtn = document.getElementById('lobby-modal-add-bot');
+    const add2BotsBtn = document.getElementById('lobby-modal-add-2-bots');
+    const addLocalBtn = document.getElementById('lobby-modal-add-local');
+
+    if (addBotBtn) addBotBtn.onclick = () => { window.socket.emit('addBot'); };
+    if (add2BotsBtn) add2BotsBtn.onclick = () => { window.socket.emit('addTwoBots'); };
+    if (addLocalBtn) addLocalBtn.onclick = () => { window.showAddLocalPlayerModal(); };
+
+    // Render 8 Operative Squad Grid
+    const grid = document.getElementById('monopoly-pubg-squad-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
     state.turnOrder.forEach((uuid, idx) => {
         const player = state.players[uuid];
         if (!player) return;
-        
-        const isMyTurn = (state.currentTurnIndex === idx);
-        const html = `
-        <div class="player-card" data-uuid="${uuid}" style="${isMyTurn ? 'border: 2px solid #2563eb; transform: scale(1.02);' : ''} padding: 8px 12px; margin-bottom: 6px;">
-            <div style="width: 4px; background: ${player.color}; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px 0 0 8px;"></div>
-            <div style="display: flex; flex-direction: column; width: 100%;">
-                <div style="font-weight: 800; font-size: 0.75rem; color: #0f172a; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase;">
-                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${idx + 1}. ${player.username} ${uuid === myUuid ? '(You)' : ''}</span>
-                    <span style="display: flex; flex-shrink: 0; gap: 4px;">
-                        ${state.status === 'LOBBY' && uuid === myUuid ? `<button onclick="window.promptEditName()" style="background: transparent; border: none; color: #3b82f6; font-size: 0.85rem; cursor: pointer; padding: 0 3px;" title="Edit Name">✎</button>` : ''}
-                        ${state.status === 'LOBBY' && uuid !== myUuid ? `<button onclick="window.socket.emit('removePlayer', '${uuid}')" style="background: transparent; border: none; color: #ef4444; font-size: 1rem; cursor: pointer; padding: 0 3px;" title="Remove Player">&times;</button>` : ''}
-                    </span>
-                </div>
-                <div style="font-size: 0.85rem; font-weight: 900; color: #16a34a; margin-top: 2px;">$${player.cash}</div>
+
+        const isYou = (uuid === myUuid);
+        const isPlayerHost = (state.host === uuid);
+        const tierName = player.tier || 'PLATINUM';
+        const tierIcon = player.tierIcon || '🛡️';
+        const tierColor = player.tierColor || '#10b981';
+        const tierClass = player.tierClass || 'tier-platinum';
+        const scoreVal = player.score ? Number(player.score).toLocaleString() : '1,500';
+        const winRateVal = player.winRate ?? 50;
+        const levelNum = Math.min(99, Math.max(14, Math.round((player.score || 500) / 45)));
+
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: linear-gradient(165deg, rgba(20, 28, 48, 0.9), rgba(10, 14, 25, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: left;
+        `;
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; padding: 2px 7px; border-radius: 6px; background: ${tierColor}18; color: ${tierColor}; border: 1px solid ${tierColor}66;">
+                    ${tierIcon} ${tierName}
+                </span>
+                ${isPlayerHost ? `<span style="font-size: 0.65rem; font-weight: 900; color: #fbbf24; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 6px; border-radius: 999px;">★ SQUAD LEADER</span>` : ''}
             </div>
-        </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; position: relative; margin: 4px 0 8px;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid ${player.color}; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: rgba(15, 23, 42, 0.8); box-shadow: 0 0 16px ${player.color}55;">
+                    ${player.symbol || '🎩'}
+                </div>
+                <span style="position: absolute; bottom: -6px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.2); color: #e2e8f0; font-family: monospace; font-size: 0.62rem; font-weight: 800; padding: 1px 5px; border-radius: 4px;">LV. ${levelNum}</span>
+            </div>
+
+            <div>
+                <div style="font-family: 'Rajdhani', sans-serif; font-size: 1.15rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${player.username} ${isYou ? '<span style="color:#00f0ff; font-size:0.75rem;">(You)</span>' : ''}
+                </div>
+
+                <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px;">
+                    ${player.verified ? `<span style="background: rgba(0,240,255,0.15); border: 1px solid #00f0ff; color: #00f0ff; padding: 2px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 900;">✓ VERIFIED PRO</span>` : ''}
+                    ${player.isBot ? `<span style="background: rgba(168,85,247,0.18); border: 1px solid #a855f7; color: #d8b4fe; padding: 2px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 800;">🤖 AI • ${player.botTrait || 'TYCOON'}</span>` : ''}
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 5px 8px; border-radius: 6px; font-size: 0.72rem; color: #cbd5e1; font-weight: 700;">
+                <span style="color: #22c55e; font-weight: 900;">💰 $${Math.round(player.cash).toLocaleString()}</span>
+                <span>⭐ ${scoreVal} RP</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; margin-top: auto;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 900; color: #10b981;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+                    <span>READY</span>
+                </div>
+                <div>
+                    ${state.status === 'LOBBY' && uuid === myUuid ? `<button onclick="window.promptEditName()" style="background: transparent; border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; cursor: pointer;">✎ Edit</button>` : ''}
+                    ${state.status === 'LOBBY' && (isHost || uuid === myUuid) && !isPlayerHost ? `<button onclick="window.socket.emit('removePlayer', '${uuid}')" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 4px;">✕ Kick</button>` : ''}
+                </div>
+            </div>
         `;
-        
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = html;
-        list.appendChild(wrapper.firstElementChild);
+
+        grid.appendChild(card);
     });
-    
-    // If in lobby and we're the host, append an 'Empty Slot' button at the bottom of the list
-    if (state.status === 'LOBBY' && state.turnOrder.length < 8) {
-        const addHtml = `
-        <div class="player-card" style="border: 2px dashed #cbd5e1; background: transparent; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 10px;" onclick="window.showAddLocalPlayerModal()">
-            <span style="font-weight: 800; font-size: 0.75rem; color: #64748b; text-transform: uppercase;">+ Add Local Player</span>
-        </div>
+
+    // Render Vacant Holographic Slots (up to 8)
+    const emptySlotsCount = 8 - state.turnOrder.length;
+    for (let i = 0; i < emptySlotsCount; i++) {
+        const slotIdx = state.turnOrder.length + i + 1;
+        const emptyCard = document.createElement('div');
+        emptyCard.style.cssText = `
+            background: rgba(15, 23, 42, 0.4);
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 18px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 230px;
+            text-align: center;
         `;
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = addHtml;
-        list.appendChild(wrapper.firstElementChild);
+
+        emptyCard.innerHTML = `
+            <div style="font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; color: #64748b;">
+                OPERATIVE 0${slotIdx}
+            </div>
+            <div style="width: 48px; height: 48px; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 1.4rem;">
+                ＋
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+                <button onclick="window.showAddLocalPlayerModal()" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; padding: 6px 8px; border-radius: 8px; cursor: pointer; text-transform: uppercase;">
+                    + Local Operative
+                </button>
+                <button onclick="window.socket.emit('addBot')" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; padding: 6px 8px; border-radius: 8px; cursor: pointer; text-transform: uppercase;">
+                    + AI Bot 🤖
+                </button>
+            </div>
+        `;
+
+        grid.appendChild(emptyCard);
     }
 }
 function showPropertyDetails(tile) {
@@ -955,44 +1159,98 @@ function updateControls(state) {
         aucOverlay.classList.remove('hidden');
         aucOverlay.style.display = 'flex';
         const tData = boardData[state.auction.tileIndex];
-        document.getElementById('auction-property').textContent = tData ? tData.name : 'PROPERTY';
+        const propEl = document.getElementById('auction-property');
+        if (propEl && tData) {
+            propEl.textContent = tData.name;
+            const hex = neonColors[tData.color] || '#f59e0b';
+            propEl.style.color = hex;
+        }
         document.getElementById('auction-bid').textContent = '$' + state.auction.currentBid;
         
         const leader = state.players[state.auction.highestBidder];
         const leaderEl = document.getElementById('auction-leader');
         if (leader) {
-            leaderEl.innerHTML = `Highest Bidder: <span style="color: ${leader.color}; font-weight: 900;">${leader.username}</span>`;
+            leaderEl.innerHTML = `Highest Bidder: <span style="color: ${leader.color}; font-weight: 900;">${leader.symbol} ${leader.username}</span>`;
         } else {
-            leaderEl.textContent = 'Highest Bidder: NONE';
+            leaderEl.textContent = `Highest Bidder: NONE (Starting: $${state.auction.currentBid})`;
         }
         document.getElementById('auction-timer').textContent = state.auction.timer + 's REMAINING';
         
-        // Render Active Bidders Chips
-        const listEl = document.getElementById('auction-bidders-list');
-        if (listEl) {
-            listEl.innerHTML = '';
-            (state.auction.activeBidders || []).forEach(bId => {
-                const bp = state.players[bId];
-                if (!bp) return;
-                const chip = document.createElement('span');
-                chip.style.cssText = `background: ${bp.color}22; color: ${bp.color}; border: 1px solid ${bp.color}; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 0.72rem;`;
-                chip.textContent = bp.username;
-                listEl.appendChild(chip);
+        // Multi-Bidder Stations (Every human player gets their own card!)
+        const gridEl = document.getElementById('auction-players-grid');
+        if (gridEl) {
+            gridEl.innerHTML = '';
+            
+            // Get all human players in this match
+            const humanPlayers = Object.values(state.players).filter(p => !p.isBot && p.online);
+            
+            humanPlayers.forEach(p => {
+                const isActive = (state.auction.activeBidders || []).includes(p.uuid);
+                const isLeader = (state.auction.highestBidder === p.uuid);
+                const next10 = state.auction.currentBid + 10;
+                const next50 = state.auction.currentBid + 50;
+                const next100 = state.auction.currentBid + 100;
+
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: ${isLeader ? 'rgba(245, 158, 11, 0.18)' : 'rgba(15, 23, 42, 0.85)'};
+                    border: 2px solid ${isLeader ? '#f59e0b' : (isActive ? 'rgba(255,255,255,0.18)' : 'rgba(239, 68, 68, 0.3)')};
+                    border-radius: 12px;
+                    padding: 10px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    box-shadow: ${isLeader ? '0 0 16px rgba(245, 158, 11, 0.4)' : 'none'};
+                    opacity: ${isActive ? '1' : '0.5'};
+                `;
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 6px; text-align: left;">
+                            <span style="font-size: 1.25rem;">${p.symbol}</span>
+                            <div>
+                                <div style="font-weight: 800; font-size: 0.82rem; color: #fff;">${p.username}</div>
+                                <div style="font-size: 0.72rem; color: #16a34a; font-weight: 800;">Cash: $${Math.round(p.cash)}</div>
+                            </div>
+                        </div>
+                        <span style="font-size: 0.65rem; font-weight: 900; padding: 2px 6px; border-radius: 6px; background: ${isLeader ? '#f59e0b' : (isActive ? '#10b981' : '#ef4444')}; color: #000;">
+                            ${isLeader ? '👑 LEADING' : (isActive ? 'ACTIVE' : 'FOLDED')}
+                        </span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                        <button class="glass-btn" style="padding: 6px 4px; font-size: 0.72rem; font-weight: 800; background: #3b82f6;" 
+                            ${(!isActive || p.cash < next10) ? 'disabled' : ''} 
+                            onclick="window.bidForPlayer('${p.uuid}', 10)">+$10</button>
+                        <button class="glass-btn" style="padding: 6px 4px; font-size: 0.72rem; font-weight: 800; background: #8b5cf6;" 
+                            ${(!isActive || p.cash < next50) ? 'disabled' : ''} 
+                            onclick="window.bidForPlayer('${p.uuid}', 50)">+$50</button>
+                        <button class="glass-btn" style="padding: 6px 4px; font-size: 0.72rem; font-weight: 800; background: #ec4899;" 
+                            ${(!isActive || p.cash < next100) ? 'disabled' : ''} 
+                            onclick="window.bidForPlayer('${p.uuid}', 100)">+$100</button>
+                        <button class="glass-btn" style="padding: 6px 4px; font-size: 0.72rem; font-weight: 800; background: #ef4444;" 
+                            ${!isActive ? 'disabled' : ''} 
+                            onclick="window.foldForPlayer('${p.uuid}')">FOLD</button>
+                    </div>
+                `;
+                gridEl.appendChild(card);
             });
         }
 
-        const controls = document.getElementById('auction-controls');
-        const status = document.getElementById('auction-status');
-        
-        const myActive = state.auction.activeBidders.includes(myUuid);
-        if (myActive) {
-            controls.style.display = 'flex';
-            status.textContent = "It's your turn to bid or fold!";
-            status.style.color = '#22c55e';
-        } else {
-            controls.style.display = 'none';
-            status.textContent = "You have folded. Waiting for others...";
-            status.style.color = '#94a3b8';
+        // Active Bots status ticker
+        const botStatusEl = document.getElementById('auction-bot-status');
+        if (botStatusEl) {
+            const botList = Object.values(state.players).filter(p => p.isBot);
+            if (botList.length > 0) {
+                const botChips = botList.map(b => {
+                    const isBActive = (state.auction.activeBidders || []).includes(b.uuid);
+                    const isBLeader = (state.auction.highestBidder === b.uuid);
+                    return `<span style="color: ${isBLeader ? '#fbbf24' : (isBActive ? '#60a5fa' : '#94a3b8')}; font-weight: 700;">${b.username} (${isBLeader ? '👑 Leading' : (isBActive ? 'Active' : 'Folded')})</span>`;
+                }).join(' • ');
+                botStatusEl.innerHTML = `🤖 AI Bots: ${botChips}`;
+            } else {
+                botStatusEl.textContent = 'All auction combatants are active local human players';
+            }
         }
     } else if (aucOverlay) {
         aucOverlay.classList.add('hidden');
@@ -1834,6 +2092,15 @@ socket.on('tradeResponse', (data) => {
     }
 });
 
+window.bidForPlayer = function(bidderUuid, amount) {
+    if (window.SoundFX && window.SoundFX.cash) window.SoundFX.cash();
+    socket.emit('placeBid', { bidderUuid, amount });
+};
+
+window.foldForPlayer = function(bidderUuid) {
+    socket.emit('foldAuction', { bidderUuid });
+};
+
 socket.on('tradeStatus', (data) => {
     const statusBox = document.getElementById('trade-status-box');
     if (statusBox) {
@@ -1845,35 +2112,127 @@ socket.on('tradeStatus', (data) => {
 });
 
 socket.on('tradeProposed', (data) => {
-    if (data.targetUuid !== myUuid) return;
+    const state = window.currentGameStateObj;
+    const targetPlayer = state && state.players ? state.players[data.targetUuid] : null;
+    const isTargetMeOrMyLocal = (data.targetUuid === myUuid) || (targetPlayer && targetPlayer.isLocal && (targetPlayer.hostId === myUuid || !targetPlayer.hostId || state.host === myUuid));
+    if (!isTargetMeOrMyLocal) return;
 
-    const offerList = (data.offerProps || []).map(p => `<li>${p.name}</li>`).join('') || '<li>None</li>';
-    const requestList = (data.requestProps || []).map(p => `<li>${p.name}</li>`).join('') || '<li>None</li>';
+    window.currentIncomingTrade = data;
+    const modal = document.getElementById('pass-play-trade-modal');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+
+    const gateStep = document.getElementById('ppt-gate-step');
+    const reviewStep = document.getElementById('ppt-review-step');
+    const gatePlayer = document.getElementById('ppt-gate-player');
+    const pptTitle = document.getElementById('ppt-title');
+    const pptSubtitle = document.getElementById('ppt-subtitle');
+
+    const targetDisplayName = targetPlayer ? targetPlayer.username : (data.targetName || 'Target Player');
+    if (gatePlayer) gatePlayer.textContent = targetDisplayName;
+    if (pptTitle) pptTitle.textContent = `Hand device to ${targetDisplayName}`;
+    if (pptSubtitle) pptSubtitle.textContent = `${data.proposerName} has proposed a deal. Review and choose to accept, decline, or counter!`;
+
+    if (gateStep) gateStep.style.display = 'block';
+    if (reviewStep) reviewStep.style.display = 'none';
+
+    const proceedBtn = document.getElementById('ppt-btn-proceed');
+    if (proceedBtn) {
+        proceedBtn.textContent = `I AM ${targetDisplayName.toUpperCase()} — REVIEW TRADE`;
+        proceedBtn.onclick = () => {
+            if (gateStep) gateStep.style.display = 'none';
+            if (reviewStep) reviewStep.style.display = 'flex';
+            populatePassPlayTradeReview(data);
+        };
+    }
+});
+
+function populatePassPlayTradeReview(data) {
+    const recPropsEl = document.getElementById('ppt-receive-props');
+    const recCashEl = document.getElementById('ppt-receive-cash');
+    const givePropsEl = document.getElementById('ppt-give-props');
+    const giveCashEl = document.getElementById('ppt-give-cash');
+
+    if (recPropsEl) {
+        recPropsEl.innerHTML = (data.offerProps && data.offerProps.length > 0)
+            ? data.offerProps.map(p => `<div>• <strong>${p.name}</strong> <span style="font-size:0.7rem; color:${neonColors[p.color] || '#3b82f6'}; font-weight:800;">(${p.color || 'Special'})</span></div>`).join('')
+            : '<div style="color: #64748b; font-style: italic;">No properties</div>';
+    }
+    if (recCashEl) {
+        recCashEl.textContent = data.offerCash > 0 ? `+ $${data.offerCash} Cash` : '';
+    }
+
+    if (givePropsEl) {
+        givePropsEl.innerHTML = (data.requestProps && data.requestProps.length > 0)
+            ? data.requestProps.map(p => `<div>• <strong>${p.name}</strong> <span style="font-size:0.7rem; color:${neonColors[p.color] || '#3b82f6'}; font-weight:800;">(${p.color || 'Special'})</span></div>`).join('')
+            : '<div style="color: #64748b; font-style: italic;">No properties</div>';
+    }
+    if (giveCashEl) {
+        giveCashEl.textContent = data.requestCash > 0 ? `- $${data.requestCash} Cash` : '';
+    }
+
+    const acceptBtn = document.getElementById('ppt-btn-accept');
+    if (acceptBtn) {
+        acceptBtn.onclick = () => {
+            closePassPlayTradeModal();
+            if (window.SoundFX && window.SoundFX.cash) window.SoundFX.cash();
+            socket.emit('respondTrade', { tradeId: data.tradeId, accepted: true });
+        };
+    }
+
+    const declineBtn = document.getElementById('ppt-btn-decline');
+    if (declineBtn) {
+        declineBtn.onclick = () => {
+            closePassPlayTradeModal();
+            socket.emit('respondTrade', { tradeId: data.tradeId, accepted: false });
+        };
+    }
+
+    const counterBtn = document.getElementById('ppt-btn-counter');
+    if (counterBtn) {
+        counterBtn.onclick = () => {
+            closePassPlayTradeModal();
+            socket.emit('respondTrade', { tradeId: data.tradeId, accepted: false });
+            openTradeModalWithCounter(data);
+        };
+    }
+}
+
+function closePassPlayTradeModal() {
+    const modal = document.getElementById('pass-play-trade-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+}
+
+function openTradeModalWithCounter(data) {
+    const tradeOverlay = document.getElementById('trade-overlay');
+    if (!tradeOverlay) return;
+    tradeOverlay.classList.remove('hidden');
+    
+    const partnerSelect = document.getElementById('trade-partner-select');
+    if (partnerSelect) {
+        partnerSelect.value = data.proposerUuid;
+        partnerSelect.dispatchEvent(new Event('change'));
+    }
+
+    const myCashInput = document.getElementById('trade-my-cash');
+    const partnerCashInput = document.getElementById('trade-partner-cash');
+    if (myCashInput) myCashInput.value = data.requestCash || 0;
+    if (partnerCashInput) partnerCashInput.value = data.offerCash || 0;
 
     Swal.fire({
-        title: `🤝 Trade Proposal from ${data.proposerName}`,
-        html: `
-            <div style="text-align: left; font-size: 0.85rem; line-height: 1.5;">
-                <div style="font-weight: 800; color: #16a34a; margin-bottom: 4px;">They Offer You:</div>
-                <ul style="margin: 0 0 6px 18px; padding: 0;">${offerList}</ul>
-                ${data.offerCash > 0 ? `<div style="font-weight: 800; color: #16a34a; margin-bottom: 8px;">+ $${data.offerCash} Cash</div>` : ''}
-                <hr style="margin: 8px 0; border: none; border-top: 1px solid #e2e8f0;">
-                <div style="font-weight: 800; color: #ef4444; margin-bottom: 4px;">They Request From You:</div>
-                <ul style="margin: 0 0 6px 18px; padding: 0;">${requestList}</ul>
-                ${data.requestCash > 0 ? `<div style="font-weight: 800; color: #ef4444; margin-bottom: 8px;">- $${data.requestCash} Cash</div>` : ''}
-            </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Accept Deal',
-        cancelButtonText: 'Decline Deal',
-        confirmButtonColor: '#16a34a',
-        cancelButtonColor: '#ef4444',
-        customClass: { popup: 'glass-panel' }
-    }).then(res => {
-        socket.emit('respondTrade', { tradeId: data.tradeId, accepted: res.isConfirmed });
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: `Counter-Offer: Adjust your terms for ${data.proposerName} and click Propose Trade!`,
+        timer: 4500,
+        showConfirmButton: false
     });
-});
+}
 
 socket.on('tradeResult', (data) => {
     Swal.fire({

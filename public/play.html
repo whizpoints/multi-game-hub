@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LUDO · Multiplayer Board Game</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -48,36 +50,54 @@
     </div>
   </div>
 
-  <!-- ═══════════ LOBBY SCREEN ═══════════ -->
+  <!-- ═══════════ LOBBY SCREEN (PUBG ESPORTS SQUAD BRIEFING) ═══════════ -->
   <div id="lobby-screen" class="screen hidden">
     <div class="lobby-container">
-      <h2 class="lobby-title">Game Lobby</h2>
-
-      <div class="share-link">
-        <span>Share:</span>
-        <input type="text" id="share-url" readonly>
-        <button id="copy-link-btn" class="btn ghost small">Copy</button>
-      </div>
-      <p class="muted small" style="margin-top: 4px; font-size: 0.8rem; text-align: center;">🌐 Share this Wi-Fi / IP link with players on your local network</p>
-
-      <div id="lobby-players" class="players-grid"></div>
-
-      <div id="host-settings" class="hidden mt" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px;">
-        <label style="display:block; margin-bottom: 10px; font-weight: 600;">Tokens per Player: <span id="token-count-display">4</span></label>
-        <input type="range" id="token-count-slider" min="1" max="6" value="4" style="width: 100%;">
-        <div style="margin-top: 15px; text-align: left;">
-          <label style="display:flex; align-items:center; gap:10px; font-weight: 600; cursor: pointer;">
-            <input type="checkbox" id="block-rule-toggle" checked style="width: 18px; height: 18px; cursor: pointer;">
-            Enable Block Rule <span class="muted small">(2 tokens block)</span>
-          </label>
+      <div class="pubg-lobby-header">
+        <div class="pubg-title-row">
+          <span class="pubg-tag">⚔️ TACTICAL SQUAD BRIEFING • 4 COMBATANTS</span>
+          <h2 class="pubg-lobby-title">LUDO ROYALE SQUAD ARENA</h2>
+        </div>
+        <div class="pubg-share-pill">
+          <span>📡 <strong>Wi-Fi Link:</strong></span>
+          <input type="text" id="share-url" readonly>
+          <button id="copy-link-btn" class="pubg-copy-btn">Copy</button>
         </div>
       </div>
 
+      <!-- PUBG 4-OPERATIVE SQUAD GRID -->
+      <div id="lobby-players" class="pubg-squad-grid"></div>
+
+      <!-- MISSION PARAMETERS -->
+      <div id="host-settings" class="hidden mt" style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); padding: 18px; border-radius: 14px; text-align: left; margin-bottom: 20px;">
+        <div style="font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.82rem; letter-spacing: 1.5px; color: #00f0ff; text-transform: uppercase; margin-bottom: 10px;">
+          🛠️ TACTICAL MISSION PARAMETERS
+        </div>
+        <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: center;">
+          <div style="flex: 1; min-width: 200px;">
+            <label style="display:flex; justify-content:space-between; margin-bottom: 6px; font-weight: 700; font-size: 0.85rem;">
+              <span>Pawns per Combatant:</span>
+              <strong id="token-count-display" style="color: #00f0ff; font-size: 1rem;">4</strong>
+            </label>
+            <input type="range" id="token-count-slider" min="1" max="6" value="4" style="width: 100%; accent-color: #00f0ff; cursor: pointer;">
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <label style="display:flex; align-items:center; gap:10px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+              <input type="checkbox" id="block-rule-toggle" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: #00f0ff;">
+              <span>Blockade Rule <small style="color: #94a3b8;">(2 tokens form block)</small></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOBBY ACTIONS & DEPLOY BUTTON -->
       <div class="lobby-actions mt">
-        <button id="add-local-btn" class="btn secondary small hidden">Add Local Player</button>
-        <button id="add-bot-btn" class="btn ghost small hidden" style="border: 1px solid rgba(255,255,255,0.2);">Add Bot 🤖</button>
-        <p id="waiting-text" class="muted">Waiting for players…</p>
-        <button id="start-btn" class="btn primary lg hidden">Start Game</button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%;">
+          <button id="add-local-btn" class="pubg-slot-btn btn-add-local hidden" style="width: auto; padding: 10px 20px;">+ Add Local Player</button>
+          <button id="add-bot-btn" class="pubg-slot-btn btn-add-bot hidden" style="width: auto; padding: 10px 20px;">+ Add AI Bot 🤖</button>
+        </div>
+        <p id="waiting-text" class="muted" style="font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 1px;">WAITING FOR SQUAD TO FORM…</p>
+        <button id="start-btn" class="pubg-deploy-btn hidden">DEPLOY TO ARENA ⚔️</button>
       </div>
     </div>
   </div>

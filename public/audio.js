@@ -1,5 +1,22 @@
-// Ultra-lightweight Web Audio API synthesizer for Ludo events
+// Ultra-lightweight Web Audio API synthesizer for Ludo and Monopoly events
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+window.AudioSettings = {
+  master: 0.8,
+  dice: 0.9,
+  fanfare: 0.75,
+  muted: false,
+  load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('game_audio_settings') || '{}');
+      if (saved.master !== undefined) this.master = Math.max(0, Math.min(1, saved.master / 100));
+      if (saved.dice !== undefined) this.dice = Math.max(0, Math.min(1, saved.dice / 100));
+      if (saved.fanfare !== undefined) this.fanfare = Math.max(0, Math.min(1, saved.fanfare / 100));
+      if (saved.muted !== undefined) this.muted = !!saved.muted;
+    } catch(e) {}
+  }
+};
+window.AudioSettings.load();
 
 // Master compressor to keep everything smooth
 const masterCompressor = audioCtx.createDynamicsCompressor();
@@ -10,7 +27,12 @@ masterCompressor.ratio.value = 12;
 masterCompressor.attack.value = 0.003;
 masterCompressor.release.value = 0.25;
 
-function playSmoothTone(freq, type, duration, vol = 0.1) {
+function playSmoothTone(freq, type, duration, vol = 0.1, category = 'fanfare') {
+  if (window.AudioSettings.muted) return;
+  const factor = window.AudioSettings.master * (category === 'dice' ? window.AudioSettings.dice : window.AudioSettings.fanfare);
+  const effectiveVol = vol * factor;
+  if (effectiveVol <= 0.0001) return;
+
   if (audioCtx.state === 'suspended') audioCtx.resume();
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
@@ -23,7 +45,7 @@ function playSmoothTone(freq, type, duration, vol = 0.1) {
   filter.frequency.value = 800; // Cut off sharp highs
   
   gain.gain.setValueAtTime(0, audioCtx.currentTime); 
-  gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + Math.min(0.08, duration/2)); // much slower attack
+  gain.gain.linearRampToValueAtTime(effectiveVol, audioCtx.currentTime + Math.min(0.08, duration/2));
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
   
   osc.connect(filter);
@@ -35,7 +57,12 @@ function playSmoothTone(freq, type, duration, vol = 0.1) {
 }
 
 // Function to play a soft percussive noise (for dice)
-function playSoftNoise(duration, vol) {
+function playSoftNoise(duration, vol, category = 'dice') {
+  if (window.AudioSettings.muted) return;
+  const factor = window.AudioSettings.master * (category === 'dice' ? window.AudioSettings.dice : window.AudioSettings.fanfare);
+  const effectiveVol = vol * factor;
+  if (effectiveVol <= 0.0001) return;
+
   if (audioCtx.state === 'suspended') audioCtx.resume();
   const bufferSize = audioCtx.sampleRate * duration;
   const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -54,7 +81,7 @@ function playSoftNoise(duration, vol) {
   
   const gain = audioCtx.createGain();
   gain.gain.setValueAtTime(0, audioCtx.currentTime);
-  gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.01);
+  gain.gain.linearRampToValueAtTime(effectiveVol, audioCtx.currentTime + 0.01);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
   
   noiseSource.connect(filter);

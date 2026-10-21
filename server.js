@@ -16,6 +16,26 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
+
+// Stroke-Play Clean URLs (Redirect legacy .html to clean endpoints)
+app.get('/play.html', (req, res) => {
+  res.redirect(301, '/play');
+});
+app.get('/monopoly/index.html', (req, res) => {
+  res.redirect(301, '/monopoly');
+});
+app.get('/monopoly/play', (req, res) => {
+  res.redirect(301, '/monopoly');
+});
+
+app.get('/play', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'play.html'));
+});
+
+app.get('/monopoly', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'monopoly', 'index.html'));
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
     etag: false,
     maxAge: 0,
@@ -26,10 +46,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
 }));
 app.get('/log-error', (req, res) => { console.error('CLIENT ERROR:', req.query.msg); res.send('logged'); });
-
-app.get('/play', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'play.html'));
-});
 
 // ── IP & NETWORK DISCOVERY ───────────────────────────────────────────────────
 function getNetworkIps() {
@@ -137,6 +153,74 @@ let gs = freshGameState();
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function rollDice() { return crypto.randomInt(1, 7); }
 
+function getPlayerPubgProfile(name, isBot, botTrait) {
+  if (isBot) {
+    const traits = ['TYCOON', 'DEALMAKER', 'CAUTIOUS', 'STRATEGIST'];
+    const trait = botTrait || traits[Math.abs((name || 'bot').split('').reduce((a,c)=>a+c.charCodeAt(0),0)) % traits.length];
+    const botTiers = {
+      'TYCOON': { tier: 'CONQUEROR', title: 'Conqueror AI', icon: '👑', color: '#ef4444', score: 3200, winRate: 68 },
+      'DEALMAKER': { tier: 'ACE', title: 'Ace Master AI', icon: '⭐', color: '#f59e0b', score: 2450, winRate: 61 },
+      'STRATEGIST': { tier: 'CROWN', title: 'Crown Elite AI', icon: '◆', color: '#a855f7', score: 1850, winRate: 54 },
+      'CAUTIOUS': { tier: 'DIAMOND', title: 'Diamond Pro AI', icon: '❖', color: '#00f0ff', score: 1400, winRate: 49 }
+    };
+    const t = botTiers[trait] || botTiers['TYCOON'];
+    return {
+      name,
+      isBot: true,
+      botTrait: trait,
+      verified: false,
+      tier: t.tier,
+      tierTitle: t.title,
+      tierClass: 'tier-' + t.tier.toLowerCase(),
+      tierIcon: t.icon,
+      tierColor: t.color,
+      score: t.score,
+      winRate: t.winRate,
+      badges: [
+        { id: 'ai', label: `🤖 AI • ${trait}`, icon: '🤖', color: '#00f0ff' },
+        { id: 'ai_tier', label: `ESPORTS AI`, icon: '⚡', color: t.color }
+      ]
+    };
+  }
+
+  const profile = (db && db.getPlayerProfile) ? db.getPlayerProfile(name) : null;
+  if (profile) {
+    return {
+      name,
+      isBot: false,
+      verified: profile.verified,
+      tier: profile.tier,
+      tierTitle: profile.tierTitle,
+      tierClass: profile.tierClass,
+      tierIcon: profile.tierIcon,
+      tierColor: profile.tierColor,
+      score: profile.score,
+      winRate: profile.winRate,
+      badges: profile.badges || []
+    };
+  }
+
+  const isJosphat = (name && name.toLowerCase() === 'josphat');
+  return {
+    name,
+    isBot: false,
+    verified: isJosphat,
+    tier: isJosphat ? 'CONQUEROR' : 'PLATINUM',
+    tierTitle: isJosphat ? 'Conqueror' : 'Platinum Contender',
+    tierClass: isJosphat ? 'tier-conqueror' : 'tier-platinum',
+    tierIcon: isJosphat ? '👑' : '🛡️',
+    tierColor: isJosphat ? '#ef4444' : '#10b981',
+    score: isJosphat ? 4420 : 750,
+    winRate: isJosphat ? 78 : 50,
+    badges: isJosphat ? [
+      { id: 'verified', label: 'VERIFIED PRO', icon: '✓', color: '#00f0ff' },
+      { id: 'mvp', label: 'ARENA MVP', icon: '👑', color: '#f59e0b' }
+    ] : [
+      { id: 'contender', label: 'CONTENDER', icon: '⚡', color: '#10b981' }
+    ]
+  };
+}
+
 function stepToCommonIndex(color, step) {
   if (step < 1 || step > 51) return null;
   return (COLOR_START[color] + step - 1) % 52;
@@ -145,8 +229,20 @@ function stepToCommonIndex(color, step) {
 function playersArray() {
   return gs.turnOrder.map(pid => {
     const p = gs.players[pid];
-    return { id: pid, name: p.name, color: p.color, connected: p.connected, hostId: p.hostId };
-  });
+    if (!p) return null;
+    const isBot = !!(p.isBot || pid.startsWith('bot_'));
+    const pubg = getPlayerPubgProfile(p.name, isBot, p.botTrait);
+    return {
+      id: pid,
+      name: p.name,
+      color: p.color,
+      connected: p.connected,
+      hostId: p.hostId,
+      isBot: isBot,
+      isHost: (pid === gs.hostPersistentId),
+      ...pubg
+    };
+  }).filter(Boolean);
 }
 
 function emitLobbyUpdate() {
@@ -367,7 +463,7 @@ function checkAllFinished(forceEnd = false) {
 
     // DB updates
     if (gs.rankings.length > 0) {
-      try { db.addMatchResult(gs.rankings, gs.rankings[0].name); } catch(e){}
+      try { db.addMatchResult(gs.rankings, gs.rankings[0].name, 'Ludo', 0, { mode: 'Classic Ludo', totalParticipants: gs.rankings.length }); } catch(e){}
       if (gs.players[gs.rankings[0].playerId]?.dbId) {
         try { db.incrementStat(gs.players[gs.rankings[0].playerId].dbId, 'games_won'); } catch(e){}
       }
@@ -416,7 +512,27 @@ app.get('/api/leaderboard', (_req, res) => {
 });
 
 app.get('/api/matches', (_req, res) => {
-  res.json(db.getRecentMatches());
+  res.json(db.getRecentMatches(20));
+});
+
+app.get('/api/matches/:id', (req, res) => {
+  const m = db.getMatchDetails(req.params.id);
+  if (m) res.json(m);
+  else res.status(404).json({ error: 'Match not found' });
+});
+
+app.get('/api/top-champions', (_req, res) => {
+  res.json(db.getTopChampions(5));
+});
+
+app.get('/api/player/:name', (req, res) => {
+  const p = db.getPlayerProfile(req.params.name);
+  if (p) res.json(p);
+  else res.status(404).json({ error: 'Player profile not found' });
+});
+
+app.get('/api/analytics', (_req, res) => {
+  res.json(db.getAnalyticsSummary());
 });
 
 app.get('/api/board-config', (_req, res) => {
@@ -929,6 +1045,13 @@ const monopolyState = {
   activeTrades: {}
 };
 
+function enrichMonopolyPlayer(p) {
+  if (!p) return;
+  const isBot = !!p.isBot;
+  const pubg = getPlayerPubgProfile(p.username, isBot, p.botTrait);
+  Object.assign(p, pubg);
+}
+
 function areAllPropertiesSold() {
     return boardData.every((tile, idx) => {
         if (tile.type === 'property' || tile.type === 'station' || tile.type === 'utility') {
@@ -1262,6 +1385,7 @@ monopolyIo.on('connection', (socket) => {
                 online: true, isBot: false, isLocal: true, hostId: socket.uuid,
                 doublesCount: 0, inJail: false, jailTurns: 0, getOutCards: 0
             };
+            enrichMonopolyPlayer(monopolyState.players[localId]);
             monopolyState.turnOrder.push(localId);
             monopolyIo.emit('systemMessage', `${playerName} joined the lobby.`);
             monopolyIo.emit('gameState', monopolyState);
@@ -1290,6 +1414,7 @@ monopolyIo.on('connection', (socket) => {
                 const oldName = p.username;
                 p.username = newName.substring(0, 15);
                 if (dbId) p.dbId = dbId;
+                enrichMonopolyPlayer(p);
                 monopolyIo.emit('systemMessage', `${oldName} switched profile to ${p.username}.`);
                 monopolyIo.emit('gameState', monopolyState);
             }
@@ -1304,6 +1429,7 @@ monopolyIo.on('connection', (socket) => {
             monopolyState.players[data.uuid].online = true;
             if (requestedName) monopolyState.players[data.uuid].username = requestedName;
             if (data.dbId) monopolyState.players[data.uuid].dbId = data.dbId;
+            enrichMonopolyPlayer(monopolyState.players[data.uuid]);
         } else {
             const neonColors = ['#ef4444', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
             const color = neonColors[monopolyState.turnOrder.length % neonColors.length];
@@ -1322,6 +1448,7 @@ monopolyIo.on('connection', (socket) => {
                 pendingAction: null,
                 getOutJailFree: 0
             };
+            enrichMonopolyPlayer(monopolyState.players[data.uuid]);
             if (!monopolyState.turnOrder.includes(data.uuid)) {
                 monopolyState.turnOrder.push(data.uuid);
             }
@@ -1353,6 +1480,7 @@ monopolyIo.on('connection', (socket) => {
                 pendingAction: null,
                 getOutJailFree: 0
             };
+            enrichMonopolyPlayer(monopolyState.players[botId]);
             monopolyState.turnOrder.push(botId);
             monopolyIo.emit('systemMessage', `${monopolyState.players[botId].username} joined the lobby.`);
             monopolyIo.emit('gameState', monopolyState);
@@ -1384,6 +1512,7 @@ monopolyIo.on('connection', (socket) => {
                     pendingAction: null,
                     getOutJailFree: 0
                 };
+                enrichMonopolyPlayer(monopolyState.players[botId]);
                 monopolyState.turnOrder.push(botId);
                 added.push(monopolyState.players[botId].username);
             }
@@ -1897,7 +2026,7 @@ monopolyIo.on('connection', (socket) => {
                     color: p.color,
                     isBot: p.isBot
                 }));
-                db.addMatchResult(matchPlayers, winnerName);
+                db.addMatchResult(matchPlayers, winnerName, 'Monopoly', 0, { mode: 'Megacity Monopoly', totalParticipants: matchPlayers.length, cash: winner ? winner.cash : 0, properties: propertiesCount });
 
                 // Increment games_played for any other participating human players
                 participants.forEach(p => {
@@ -2659,22 +2788,7 @@ monopolyIo.on('connection', (socket) => {
               });
           }
       } else {
-          // If the target is controlled by the same client (e.g. Host trading with a local player on the board)
-          const canControlTarget = (socket.uuid === targetUuid) || (target.isLocal && (target.hostId === socket.uuid || !target.hostId || monopolyState.host === socket.uuid));
-          if (canControlTarget) {
-              offerProps.forEach(idx => { monopolyState.properties[idx].owner = targetUuid; });
-              requestProps.forEach(idx => { monopolyState.properties[idx].owner = proposerUuid; });
-              proposer.cash = Math.round(proposer.cash - offerCash + requestCash);
-              target.cash = Math.round(target.cash + offerCash - requestCash);
-
-              const offerNames = offerProps.map(i => boardData[i].name).join(', ') + (offerCash > 0 ? (offerProps.length > 0 ? ` + $${offerCash}` : `$${offerCash}`) : '');
-              const requestNames = requestProps.map(i => boardData[i].name).join(', ') + (requestCash > 0 ? (requestProps.length > 0 ? ` + $${requestCash}` : `$${requestCash}`) : '');
-
-              monopolyIo.emit('systemMessage', `🤝 TRADE COMPLETED: ${proposer.username} traded (${offerNames || '$0'}) with ${target.username} for (${requestNames || '$0'})!`);
-              monopolyIo.emit('gameState', monopolyState);
-              socket.emit('tradeSuccess', { message: `Trade between ${proposer.username} and ${target.username} completed!` });
-              return;
-          }
+          const isLocalTrade = (socket.uuid === targetUuid) || (target.isLocal && (target.hostId === socket.uuid || !target.hostId || monopolyState.host === socket.uuid));
 
           const tradeId = 'trade_' + Date.now();
           monopolyState.activeTrades[tradeId] = {
@@ -2684,19 +2798,22 @@ monopolyIo.on('connection', (socket) => {
               offerProps,
               offerCash,
               requestProps,
-              requestCash
+              requestCash,
+              isLocalTrade
           };
           monopolyIo.emit('tradeProposed', {
               tradeId,
               proposerName: proposer.username,
               proposerUuid,
+              targetName: target.username,
               targetUuid,
+              isLocalTrade,
               offerProps: offerProps.map(i => ({ index: i, name: boardData[i].name, color: boardData[i].color })),
               offerCash,
               requestProps: requestProps.map(i => ({ index: i, name: boardData[i].name, color: boardData[i].color })),
               requestCash
           });
-          socket.emit('tradeStatus', { message: `Trade proposal sent to ${target.username}. Awaiting response...` });
+          socket.emit('tradeStatus', { message: `Trade proposal submitted for ${target.username}. Awaiting review...` });
       }
   });
 

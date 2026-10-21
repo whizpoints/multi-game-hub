@@ -415,15 +415,82 @@ socket.on('lobbyUpdate', (data) => {
       removeBtn = `<button class="btn ghost small" style="padding: 2px 6px; color: #ff4757; margin-left: 10px;" onclick="window.removePlayer('${p.id}')" title="Remove Player">✕</button>`;
     }
 
+    const tierName = p.tier || 'PLATINUM';
+    const tierIcon = p.tierIcon || '🛡️';
+    const tierColor = p.tierColor || '#10b981';
+    const tierClass = p.tierClass || 'tier-platinum';
+    const scoreVal = p.score ? Number(p.score).toLocaleString() : '1,200';
+    const winRateVal = p.winRate ?? 50;
+    const levelNum = Math.min(99, Math.max(14, Math.round((p.score || 500) / 45)));
+    const isThisPlayerHost = (p.id === hostId);
+
     container.innerHTML += `
-      <div class="player-card" style="border-left-color:${c.fill}; display: flex; justify-content: space-between; align-items: center;">
-        <span style="flex-grow: 1;">${p.name}${owns}${dc}</span>
-        <div style="display: flex; align-items: center;">
-          ${colorSelect}
+      <div class="pubg-operative-card ${tierClass}" style="--player-accent: ${c.fill};">
+        <div class="pubg-card-top-strip">
+          <span class="pubg-tier-badge" style="color: ${tierColor}; border-color: ${tierColor}88; background: ${tierColor}18;">
+            ${tierIcon} ${tierName}
+          </span>
+          ${isThisPlayerHost ? `<span class="pubg-host-badge">★ SQUAD LEADER</span>` : ''}
+        </div>
+
+        <div class="pubg-avatar-wrapper">
+          <div class="pubg-avatar-ring" style="border-color: ${c.fill}; box-shadow: 0 0 16px ${c.fill}55;">
+            <span style="font-size: 1.8rem; filter: drop-shadow(0 0 6px ${c.fill});">🎲</span>
+          </div>
+          <span class="pubg-level-tag">LV. ${levelNum}</span>
+        </div>
+
+        <div class="pubg-operative-info" style="flex: 1;">
+          <div class="pubg-op-name" title="${p.name}">
+            ${p.name} <span class="pubg-you-tag">${owns}</span>
+          </div>
+
+          <div class="pubg-badges-row">
+            ${p.verified ? `<span class="pubg-verified-badge">✓ VERIFIED PRO</span>` : ''}
+            ${p.isBot ? `<span class="pubg-bot-badge">🤖 AI • ${p.botTrait || 'TYCOON'}</span>` : ''}
+          </div>
+
+          <div class="pubg-telemetry-row">
+            <span>⭐ ${scoreVal} RP</span>
+            <span>🎯 ${winRateVal}% WR</span>
+          </div>
+
+          <div class="pubg-color-selector">
+            <label>TACTICAL SUIT:</label>
+            ${colorSelect}
+          </div>
+        </div>
+
+        <div class="pubg-card-footer">
+          <div class="pubg-ready-status">
+            <span class="pubg-pulse-dot" style="${!p.connected ? 'background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: none;' : ''}"></span>
+            <span class="pubg-ready-text" style="${!p.connected ? 'color: #ef4444;' : ''}">${p.connected ? 'READY' : 'OFFLINE'}</span>
+          </div>
           ${removeBtn}
         </div>
       </div>`;
   });
+
+  // Render empty holographic slots up to 4
+  const emptyCount = 4 - playersList.length;
+  for (let i = 0; i < emptyCount; i++) {
+    const slotIdx = playersList.length + i + 1;
+    container.innerHTML += `
+      <div class="pubg-empty-slot">
+        <div class="pubg-slot-num">OPERATIVE 0${slotIdx}</div>
+        <div class="pubg-slot-hologram">
+          <span class="pubg-holo-icon">＋</span>
+        </div>
+        <div class="pubg-slot-actions">
+          <button class="pubg-slot-btn btn-add-local" onclick="window.triggerAddLocal()">+ Local Operative</button>
+          <button class="pubg-slot-btn btn-add-bot" onclick="window.triggerAddBot()">+ AI Bot 🤖</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  window.triggerAddLocal = () => { $('add-local-btn')?.click(); };
+  window.triggerAddBot = () => { $('add-bot-btn')?.click(); };
   
   window.changePlayerColor = (playerId, newColor) => {
     socket.emit('changeColor', { playerId, newColor });
@@ -741,6 +808,10 @@ function initStatusCards(players) {
   players.forEach(p => {
     const c = COLORS[p.color] || { fill: '#888' };
     const owns = (p.id === persistentId) ? ' (You)' : '';
+    const tierIcon = p.tierIcon || '🛡️';
+    const tierName = p.tier || 'PLATINUM';
+    const verifiedIcon = p.verified ? '<span style="color:#00f0ff; font-weight:900; font-size:0.75rem; margin-left:3px;" title="Verified Pro">✓</span>' : '';
+    const botTag = p.isBot ? `<span style="font-size:0.65rem; color:#c084fc; font-weight:800; margin-left:3px;">🤖 ${p.botTrait || 'AI'}</span>` : '';
     
     // Create card
     const card = document.createElement('div');
@@ -750,7 +821,12 @@ function initStatusCards(players) {
     
     card.innerHTML = `
       <div class="player-info">
-        <span class="player-name" style="color:${c.fill}">${p.name}${owns} <span id="rank-badge-${p.id}" style="font-size: 1.2rem; margin-left: 5px;"></span></span>
+        <div class="player-name" style="color:${c.fill}; display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+          <span style="font-weight:800;">${p.name}${owns}</span>
+          ${verifiedIcon}
+          ${botTag}
+          <span style="font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; background: ${p.tierColor || '#10b981'}22; color: ${p.tierColor || '#10b981'}; border: 1px solid ${p.tierColor || '#10b981'}55; font-weight: 800; font-family:'Rajdhani',sans-serif;">${tierIcon} ${tierName}</span>
+        </div>
         <span class="status-nums">
           <span title="Active" id="active-stat-${p.id}">0 ⚔</span>
           <span title="Home" id="home-stat-${p.id}">0/${boardConfig.tokensPerPlayer} 🏠</span>

@@ -3,99 +3,212 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LUDO - Ultimate Multiplayer Board Game</title>
-  <link rel="stylesheet" href="landing.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <title>MULTIPLAYER BATTLE HUB • LUDO & MONOPOLY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing.css?v=2">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="background-shapes">
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-  </div>
+  <div class="container">
+    <!-- PUBG ESPORTS NAVBAR -->
+    <header class="pubg-navbar">
+      <a href="/" class="brand-logo">
+        <div class="brand-icon">⚔️</div>
+        <div class="brand-text">
+          <h1>GAME HUB</h1>
+          <span>TACTICAL MULTIPLAYER ARENA</span>
+        </div>
+      </a>
+      
+      <div class="nav-links">
+        <a href="#wall-of-fame" class="nav-link">🏆 Wall of Fame</a>
+        <a href="#analytics" class="nav-link">📊 Analytics</a>
+        <a href="#matches" class="nav-link">📜 Match Intel</a>
+        
+        <div class="lan-pill" id="lan-ip-card">
+          <span>📡 <strong>Wi-Fi Link:</strong> <code id="hub-ip-display">Loading...</code></span>
+          <button id="copy-hub-ip-btn" class="copy-mini-btn">Copy</button>
+        </div>
 
-    <div class="container">
-    <header class="header">
-      <div class="logo">
-        <div class="logo-icon">🎮</div>
-        <h1>GAME HUB</h1>
+        <button id="open-audio-settings-btn" class="copy-mini-btn" style="padding: 6px 10px; font-size: 0.85rem;" title="Audio Settings">⚙️ Sound</button>
       </div>
-      <nav class="nav">
-        <a href="#wall-of-fame" class="nav-link">Wall of Fame</a>
-      </nav>
     </header>
 
-    <main class="hero">
-      <div class="hero-content glass-card">
-        <h2 class="hero-title">Welcome to the <span class="highlight">Multi-Game Hub</span></h2>
-        <p class="hero-subtitle">Play the ultimate Ludo experience or dominate the property market in Monopoly!</p>
-        <div class="hero-actions" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-          <a href="/play" class="btn primary lg action-btn">Play Ludo 🎲</a>
-          <a href="/monopoly/index.html" class="btn primary lg action-btn" style="background: #2563eb; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">Play Monopoly 🏙️</a>
+    <!-- HERO ARENA CARDS -->
+    <section class="hero-arena-grid">
+      <!-- LUDO ARENA -->
+      <div class="arena-card card-ludo">
+        <div>
+          <span class="arena-badge badge-ludo">🎲 Strategic Combat • 2-4 Players</span>
+          <h2 class="arena-title">LUDO ROYALE</h2>
+          <p class="arena-desc">Fast-paced tactical token elimination. Roll the dice, capture enemy pawns, trigger kill streaks, and secure victory in the home triangle.</p>
+          <div class="arena-features">
+            <span class="feature-tag">🎯 Precision Movement</span>
+            <span class="feature-tag">🔥 Kill Streaks</span>
+            <span class="feature-tag">⚔️ Safe Zone Tactics</span>
+            <span class="feature-tag">🌐 Wi-Fi Multiplayer</span>
+          </div>
         </div>
-        <div id="lan-ip-card" style="margin-top: 25px; padding: 12px 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; display: inline-flex; align-items: center; gap: 12px; font-size: 0.9rem; flex-wrap: wrap; justify-content: center;">
-          <span>🌐 <strong>Play across Wi-Fi / LAN:</strong> <code id="hub-ip-display" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px; font-weight: 700; color: #38bdf8;">Loading IP...</code></span>
-          <button id="copy-hub-ip-btn" class="btn ghost small" style="padding: 4px 10px; font-size: 0.8rem;">Copy Link</button>
+        <a href="/play" class="arena-btn btn-ludo">
+          <span>ENTER LUDO ARENA</span>
+          <span>➔</span>
+        </a>
+      </div>
+
+      <!-- MONOPOLY ARENA -->
+      <div class="arena-card card-monopoly">
+        <div>
+          <span class="arena-badge badge-monopoly">🎩 Real Estate Tycoon • 2-8 Players</span>
+          <h2 class="arena-title">MEGACITY MONOPOLY</h2>
+          <p class="arena-desc">High-stakes corporate domination. Purchase city properties, build skyscrapers, run live 8-way auctions, and negotiate deals on the trading desk.</p>
+          <div class="arena-features">
+            <span class="feature-tag">🏛️ 40 Megacity Tiles</span>
+            <span class="feature-tag">⚡ Live 8-Way Bidding</span>
+            <span class="feature-tag">🤝 Trade Negotiation Desk</span>
+            <span class="feature-tag">🏦 Mortgage & Building</span>
+          </div>
+        </div>
+        <a href="/monopoly" class="arena-btn btn-monopoly">
+          <span>ENTER MONOPOLY</span>
+          <span>➔</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- WALL OF FAME (TOP 5 PODIUM) -->
+    <section id="wall-of-fame" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2><span>🏆</span> <span>WALL OF FAME (TOP 5 CHAMPIONS)</span></h2>
+          <p class="section-subtitle">Real-time competitive combatants verified with official tier insignias and badges.</p>
+        </div>
+        <div class="tab-switcher">
+          <button id="tab-ludo" class="tab-btn active" onclick="switchWallOfFameTab('ludo')">🎲 Ludo Grandmasters</button>
+          <button id="tab-monopoly" class="tab-btn" onclick="switchWallOfFameTab('monopoly')">🎩 Monopoly Tycoons</button>
         </div>
       </div>
-    </main>
 
-    <section id="leaderboard" class="section">
-      <div class="glass-card full-width">
-        <h2 class="section-title">🌍 Global Leaderboard</h2>
-        <p class="section-desc">The greatest Ludo strategists of all time.</p>
-        
-        <div class="leaderboard-container">
-          <div class="table-responsive">
-            <table class="glass-table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Player</th>
-                  <th>Class</th>
-                  <th>Points</th>
-                  <th>Win Rate</th>
-                  <th>Kills</th>
-                </tr>
-              </thead>
-              <tbody id="leaderboard-body">
-                <tr><td colspan="6" class="loading">Loading champions...</td></tr>
-              </tbody>
-            </table>
+      <!-- Top 3 Podium Cards -->
+      <div class="podium-container" id="podium-container">
+        <!-- Rendered dynamically via landing.js -->
+      </div>
+
+      <!-- 4th & 5th Place Runner Ups -->
+      <div class="runners-grid" id="runners-container">
+        <!-- Rendered dynamically via landing.js -->
+      </div>
+    </section>
+
+    <!-- BATTLE ANALYTICS (FIXED INTERACTIVE GRAPHS) -->
+    <section id="analytics" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2><span>📊</span> <span>BATTLE ANALYTICS & TIER INTEL</span></h2>
+          <p class="section-subtitle">Competitive stats, win rate distributions, and player tier telemetry.</p>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <div class="chart-card">
+          <div class="chart-card-title"><span>🎯</span> <span>Top Champion Dominance & Win Rates</span></div>
+          <div class="chart-card-desc">Comparative victory ratio and battle score among ranked fighters</div>
+          <div class="chart-wrap">
+            <canvas id="chart-winrates"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-title"><span>🛡️</span> <span>Competitor Tier Breakdown</span></div>
+          <div class="chart-card-desc">Roster distribution from Bronze Cadet to Conqueror Elite</div>
+          <div class="chart-wrap">
+            <canvas id="chart-tiers"></canvas>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="wall-of-fame" class="section">
-      <div class="glass-card full-width">
-        <h2 class="section-title">🏆 Recent Matches (Wall of Fame)</h2>
-        <p class="section-desc">The most recent completed battles.</p>
-        
-        <div class="leaderboard-container">
-          <div class="table-responsive">
-            <table class="glass-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Winner</th>
-                  <th>Players</th>
-                </tr>
-              </thead>
-              <tbody id="matches-body">
-                <tr><td colspan="3" class="loading">Loading matches...</td></tr>
-              </tbody>
-            </table>
-          </div>
+    <!-- RECENT MATCHES (MATCH INTEL LOGS) -->
+    <section id="matches" class="section-block">
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <h2><span>📜</span> <span>RECENT BATTLES (MATCH INTEL)</span></h2>
+          <p class="section-subtitle">Every completed conflict documented with participant telemetry. Click View Intel for full match dossier.</p>
         </div>
+      </div>
+
+      <div class="matches-list" id="matches-list">
+        <div style="text-align: center; color: var(--text-dim); padding: 30px;">Loading battle history...</div>
       </div>
     </section>
 
-    <footer class="footer glass-card">
-      <p>&copy; 2026 LUDO Multiplayer. All rights reserved.</p>
+    <footer class="pubg-footer">
+      <p>&copy; 2026 MULTIPLAYER BATTLE HUB • AAA ESPORTS EDITION • ALL STATS VERIFIED IN SQLITE</p>
     </footer>
   </div>
 
-  <script src="landing.js"></script>
+  <!-- MATCH INTEL DOSSIER MODAL -->
+  <div class="modal-backdrop" id="match-modal">
+    <div class="modal-panel">
+      <button class="modal-close-btn" onclick="closeMatchModal()">&times;</button>
+      <div id="match-modal-content">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYER PROFILE DOSSIER MODAL -->
+  <div class="modal-backdrop" id="player-modal">
+    <div class="modal-panel">
+      <button class="modal-close-btn" onclick="closePlayerModal()">&times;</button>
+      <div id="player-modal-content">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIO SETTINGS MODAL -->
+  <div class="modal-backdrop" id="audio-modal">
+    <div class="modal-panel" style="width: 480px;">
+      <button class="modal-close-btn" onclick="closeAudioModal()">&times;</button>
+      <div style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 900; color: #fff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+        <span>⚙️</span> <span>AUDIO CONTROL CENTER</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 24px;">Adjust master and sound effect levels. Saved automatically across all games.</p>
+
+      <div class="volume-slider-group">
+        <div class="volume-slider-header">
+          <span>Master Volume</span>
+          <span id="val-master">80%</span>
+        </div>
+        <input type="range" class="volume-slider" id="slider-master" min="0" max="100" value="80" oninput="updateAudioSetting('master', this.value)">
+      </div>
+
+      <div class="volume-slider-group">
+        <div class="volume-slider-header">
+          <span>Dice Rolls & Movement SFX</span>
+          <span id="val-dice">90%</span>
+        </div>
+        <input type="range" class="volume-slider" id="slider-dice" min="0" max="100" value="90" oninput="updateAudioSetting('dice', this.value)">
+      </div>
+
+      <div class="volume-slider-group">
+        <div class="volume-slider-header">
+          <span>Cash, Fanfares & Victory SFX</span>
+          <span id="val-fanfare">75%</span>
+        </div>
+        <input type="range" class="volume-slider" id="slider-fanfare" min="0" max="100" value="75" oninput="updateAudioSetting('fanfare', this.value)">
+      </div>
+
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.82rem; font-weight: 700;">Mute All Sounds</span>
+        <input type="checkbox" id="check-mute" style="width: 20px; height: 20px; accent-color: var(--cyan); cursor: pointer;" onchange="updateAudioSetting('muted', this.checked)">
+      </div>
+    </div>
+  </div>
+
+  <script src="/audio.js?v=14"></script>
+  <script src="landing.js?v=2"></script>
 </body>
 </html>

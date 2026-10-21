@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Megacity Monopoly</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=14">
+    <title>Megacity Monopoly • Tactical Arena</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
     <div class="bg-mesh">
@@ -64,26 +66,89 @@
         </div>
 
         
-        <!-- AUCTION OVERLAY -->
-        <div id="auction-overlay" class="hidden" style="position: absolute; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
-            <div style="background: #1e293b; padding: 30px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #334155;">
-                <h2 style="font-size: 2rem; margin-bottom: 10px; color: #f59e0b; text-transform: uppercase;">LIVE AUCTION</h2>
-                <h3 id="auction-property" style="font-size: 1.5rem; margin-bottom: 20px;">TROY</h3>
+        <!-- MULTI-BIDDER LIVE AUCTION OVERLAY (SUPPORTS UP TO 8 INDIVIDUAL BID CARDS) -->
+        <div id="auction-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 20px; backdrop-filter: blur(8px);">
+            <div style="background: #1e293b; padding: 24px 28px; border-radius: 20px; width: 850px; max-width: 95vw; max-height: 92vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 2px solid #334155; display: flex; flex-direction: column; gap: 14px;">
                 
-                <div style="font-size: 3rem; font-weight: 900; color: #22c55e; margin-bottom: 10px;" id="auction-bid">$10</div>
-                <div id="auction-leader" style="font-size: 1rem; color: #94a3b8; margin-bottom: 20px;">Highest Bidder: NONE</div>
-                
-                <div style="font-size: 1.2rem; font-weight: bold; color: #ef4444; margin-bottom: 20px;" id="auction-timer">15s REMAINING</div>
-                
-                <div id="auction-controls" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
-                    <button class="glass-btn" style="background: #3b82f6; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('placeBid', 10)">+$10</button>
-                    <button class="glass-btn" style="background: #8b5cf6; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('placeBid', 50)">+$50</button>
-                    <button class="glass-btn" style="background: #ec4899; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('placeBid', 100)">+$100</button>
-                    <button class="glass-btn" style="background: #ef4444; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('foldAuction')">FOLD</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <div style="text-align: left;">
+                        <span style="font-size: 0.75rem; letter-spacing: 2px; color: #f59e0b; font-weight: 800; text-transform: uppercase;">LIVE MULTIPLAYER AUCTION</span>
+                        <h2 id="auction-property" style="font-size: 1.6rem; font-weight: 900; color: #fff; margin-top: 2px;">PROPERTY</h2>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">CURRENT HIGHEST BID</div>
+                        <div id="auction-bid" style="font-size: 2.2rem; font-weight: 900; color: #22c55e; line-height: 1;">$10</div>
+                    </div>
                 </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 8px 16px; border-radius: 10px; flex-wrap: wrap; gap: 10px;">
+                    <div id="auction-leader" style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;">Highest Bidder: NONE</div>
+                    <div id="auction-timer" style="font-size: 1rem; font-weight: 900; color: #ef4444;">15s REMAINING</div>
+                </div>
+
+                <!-- DYNAMIC GRID OF BIDDER CARDS (UP TO 8 LOCAL/HUMAN PLAYERS) -->
+                <div>
+                    <div style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; text-align: left;">Combatant Bidding Stations:</div>
+                    <div id="auction-players-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                        <!-- Injected dynamically via JS with custom bid buttons per player -->
+                    </div>
+                </div>
+
+                <!-- Bot Status & Activity Log -->
+                <div id="auction-bot-status" style="font-size: 0.75rem; color: #cbd5e1; background: rgba(255,255,255,0.04); padding: 6px 12px; border-radius: 8px;">
+                    🤖 Automated AI bots bid in real time in the background
+                </div>
+            </div>
+        </div>
+
+        <!-- PUBG MEGACITY SQUAD READY ROOM OVERLAY (ACTIVE DURING LOBBY PHASE) -->
+        <div id="monopoly-pubg-lobby-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(7, 10, 18, 0.96); z-index: 1050; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 20px; backdrop-filter: blur(12px);">
+            <div style="background: linear-gradient(175deg, rgba(16, 24, 42, 0.98), rgba(9, 13, 24, 0.99)); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 24px; width: 1050px; max-width: 96vw; max-height: 94vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 50px rgba(0, 240, 255, 0.1); padding: 26px 30px; display: flex; flex-direction: column; gap: 18px;">
                 
-                <div id="auction-status" style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px;">Waiting for bids...</div>
-                <div id="auction-bidders-list" style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; font-size: 0.75rem; color: #94a3b8;"></div>
+                <!-- HEADER -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <div style="font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; color: #00f0ff; text-transform: uppercase;">⚔️ PUBG TACTICAL READY ROOM • MEGACITY ARENA</div>
+                        <h2 style="font-family: 'Rajdhani', sans-serif; font-size: 1.9rem; font-weight: 900; letter-spacing: 1.5px; color: #fff; margin: 2px 0 0; text-transform: uppercase;">SQUAD FORMATION BRIEFING</h2>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.45); border: 1px solid rgba(0,240,255,0.25); padding: 6px 14px; border-radius: 999px;">
+                        <span style="font-size: 0.78rem; color: #94a3b8;">📡 <strong>Wi-Fi Link:</strong></span>
+                        <input type="text" id="monopoly-lobby-share-input" readonly style="background: transparent; border: none; color: #00f0ff; font-family: monospace; font-size: 0.8rem; font-weight: 700; outline: none; width: 190px;">
+                        <button id="monopoly-lobby-copy-btn" class="glass-btn" style="padding: 3px 10px; font-size: 0.72rem; border-radius: 999px; background: rgba(0,240,255,0.15); border: 1px solid #00f0ff; color: #00f0ff; font-weight: 800;">Copy</button>
+                    </div>
+                </div>
+
+                <!-- 8-OPERATIVE SQUAD GRID -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.82rem; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">
+                            OPERATIVES ASSEMBLED (<span id="monopoly-lobby-player-count">1</span> / 8)
+                        </span>
+                        <span style="font-size: 0.72rem; color: #10b981; font-weight: 800;">● SQUAD LINK STABLE</span>
+                    </div>
+                    <div id="monopoly-pubg-squad-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;">
+                        <!-- Injected dynamically via JS with full PUBG Operative Cards & Empty Slots -->
+                    </div>
+                </div>
+
+                <!-- BOTTOM COMMAND CONSOLE -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px; flex-wrap: wrap; gap: 14px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button id="lobby-modal-add-bot" class="glass-btn" style="padding: 9px 14px; font-size: 0.82rem; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px;">+ Add Bot 🤖</button>
+                        <button id="lobby-modal-add-2-bots" class="glass-btn" style="padding: 9px 14px; font-size: 0.82rem; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px;">+ 2 Bots</button>
+                        <button id="lobby-modal-add-local" class="glass-btn" style="padding: 9px 14px; font-size: 0.82rem; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px;">+ Add Local Player</button>
+                    </div>
+
+                    <div id="monopoly-lobby-deploy-container" style="flex: 1; max-width: 380px; text-align: right;">
+                        <button id="monopoly-deploy-btn" style="width: 100%; font-family: 'Rajdhani', sans-serif; font-size: 1.25rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; padding: 14px 28px; border-radius: 12px; cursor: pointer; box-shadow: 0 0 25px rgba(16, 185, 129, 0.6); transition: all 0.25s;">
+                            DEPLOY SQUAD (START) ⚔️
+                        </button>
+                        <div id="monopoly-lobby-waiting-msg" style="display: none; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.95rem; color: #f59e0b; letter-spacing: 1px;">
+                            ⏳ WAITING FOR SQUAD LEADER TO DEPLOY...
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -283,11 +348,49 @@
         </div>
     </div>
 
+    <!-- PASS & PLAY TRADE REVIEW MODAL (FOR LOCAL SINGLE-DEVICE PLAYERS) -->
+    <div id="pass-play-trade-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); z-index: 1200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); padding: 15px;">
+        <div class="glass-panel" style="background: #ffffff; border-radius: 20px; width: 620px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 2px solid #3b82f6; display: flex; flex-direction: column; gap: 16px;">
+            <div style="text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px;">
+                <div style="font-size: 0.75rem; font-weight: 800; color: #3b82f6; letter-spacing: 2px; text-transform: uppercase;">🤝 Pass & Play Agreement Flow</div>
+                <h2 id="ppt-title" style="font-size: 1.4rem; font-weight: 900; color: #0f172a; margin-top: 4px;">Pass device to Target Player</h2>
+                <div id="ppt-subtitle" style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">A trade deal was submitted. Review before accepting.</div>
+            </div>
+
+            <div id="ppt-gate-step" style="text-align: center; padding: 20px 10px;">
+                <div style="font-size: 3rem; margin-bottom: 12px;">💻 ➔ 👤</div>
+                <p style="font-size: 0.95rem; color: #334155; margin-bottom: 20px; font-weight: 600;">Please hand the laptop to <strong id="ppt-gate-player" style="color: #2563eb;">Player</strong> to review this deal privately.</p>
+                <button id="ppt-btn-proceed" class="glass-btn" style="background: #2563eb; color: #fff; padding: 12px 30px; font-size: 0.95rem; font-weight: 800; border-radius: 12px; width: 100%;">I AM THIS PLAYER — VIEW TRADE DETAILS</button>
+            </div>
+
+            <div id="ppt-review-step" style="display: none; flex-direction: column; gap: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px;">
+                        <div style="font-size: 0.78rem; font-weight: 900; color: #16a34a; text-transform: uppercase;">YOU RECEIVE:</div>
+                        <div id="ppt-receive-props" style="margin-top: 8px; font-size: 0.82rem; color: #1e293b; display: flex; flex-direction: column; gap: 4px;"></div>
+                        <div id="ppt-receive-cash" style="margin-top: 8px; font-weight: 800; font-size: 0.9rem; color: #15803d;"></div>
+                    </div>
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px;">
+                        <div style="font-size: 0.78rem; font-weight: 900; color: #dc2626; text-transform: uppercase;">YOU GIVE UP:</div>
+                        <div id="ppt-give-props" style="margin-top: 8px; font-size: 0.82rem; color: #1e293b; display: flex; flex-direction: column; gap: 4px;"></div>
+                        <div id="ppt-give-cash" style="margin-top: 8px; font-weight: 800; font-size: 0.9rem; color: #b91c1c;"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
+                    <button id="ppt-btn-accept" class="glass-btn" style="flex: 1.2; min-width: 120px; background: #16a34a; color: #fff; padding: 12px; font-weight: 900; border-radius: 10px;">✅ ACCEPT DEAL</button>
+                    <button id="ppt-btn-counter" class="glass-btn" style="flex: 1; min-width: 120px; background: #f59e0b; color: #fff; padding: 12px; font-weight: 900; border-radius: 10px;">🔄 COUNTER-OFFER</button>
+                    <button id="ppt-btn-decline" class="glass-btn" style="flex: 0.8; min-width: 100px; background: #ef4444; color: #fff; padding: 12px; font-weight: 900; border-radius: 10px;">❌ DECLINE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/audio.js?v=11"></script>
-    <script src="boardData.js?v=14"></script>
-    <script src="game.js?v=14"></script>
+    <script src="/audio.js?v=15"></script>
+    <script src="boardData.js?v=15"></script>
+    <script src="game.js?v=15"></script>
 </body>
 </html>
