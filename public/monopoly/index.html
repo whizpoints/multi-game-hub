@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/monopoly/style.css?v=16">
+    <link rel="stylesheet" href="/monopoly/style.css?v=17">
 </head>
 <body>
     <div class="bg-mesh">
@@ -31,13 +31,13 @@
                 <div id="players-list">
                     <!-- Player cards go here -->
                 </div>
-                <div id="host-controls" class="hidden" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                <div id="host-controls" class="hidden" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; gap: 6px;">
-                        <button id="add-bot-btn" class="glass-btn" style="flex: 1; padding: 9px 6px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Bot</button>
-                        <button id="add-2-bots-btn" class="glass-btn" style="flex: 1; padding: 9px 6px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ 2 Bots</button>
+                        <button id="add-bot-btn" class="glass-btn" style="flex: 1; padding: 10px 8px; font-size: 0.82rem; font-weight: 800; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #ffffff; border: 1px solid #a78bfa; border-radius: 8px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35); cursor: pointer;">+ Add Bot 🤖</button>
+                        <button id="add-2-bots-btn" class="glass-btn" style="flex: 1; padding: 10px 8px; font-size: 0.82rem; font-weight: 800; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #ffffff; border: 1px solid #c4b5fd; border-radius: 8px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35); cursor: pointer;">+ 2 Bots</button>
                     </div>
-                    <button id="add-local-btn" class="glass-btn" style="padding: 10px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Local Player</button>
-                    <button id="start-game-btn" class="glass-btn" style="padding: 12px; font-size: 1rem; margin-top: 4px;">START GAME</button>
+                    <button id="add-local-btn" class="glass-btn" style="padding: 10px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: 1px solid #38bdf8; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); cursor: pointer;">+ Add Local Player</button>
+                    <button id="start-game-btn" class="glass-btn" style="padding: 12px; font-size: 1rem; margin-top: 4px; font-weight: 900; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 10px; box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45); cursor: pointer;">START GAME ⚔️</button>
                 </div>
                 <div id="in-game-controls" class="hidden" style="margin-top: 10px; display: flex; gap: 6px;">
                     <button id="open-trade-btn" class="glass-btn" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 800; border-radius: 8px;">
@@ -68,35 +68,46 @@
 
         
         <!-- MULTI-BIDDER LIVE AUCTION OVERLAY (SUPPORTS UP TO 8 INDIVIDUAL BID CARDS) -->
-        <div id="auction-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 20px; backdrop-filter: blur(8px);">
-            <div style="background: #1e293b; padding: 24px 28px; border-radius: 20px; width: 850px; max-width: 95vw; max-height: 92vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 2px solid #334155; display: flex; flex-direction: column; gap: 14px;">
+        <div id="auction-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(10, 15, 29, 0.94); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 12px; backdrop-filter: blur(10px);">
+            <div style="background: #111827; padding: 16px 20px; border-radius: 18px; width: 1080px; max-width: 98vw; max-height: 96vh; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 35px rgba(37, 99, 235, 0.2); border: 1.5px solid #1f2937; display: flex; flex-direction: column; gap: 10px;">
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-                    <div style="text-align: left;">
-                        <span style="font-size: 0.75rem; letter-spacing: 2px; color: #f59e0b; font-weight: 800; text-transform: uppercase;">LIVE MULTIPLAYER AUCTION</span>
-                        <h2 id="auction-property" style="font-size: 1.6rem; font-weight: 900; color: #fff; margin-top: 2px;">PROPERTY</h2>
+                <!-- COMPACT TOP BAR: PROPERTY + BID + TIMER -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                    <div style="text-align: left; display: flex; align-items: center; gap: 10px;">
+                        <div id="auction-color-bar" style="width: 8px; height: 38px; border-radius: 4px; background: #3b82f6;"></div>
+                        <div>
+                            <span style="font-size: 0.7rem; letter-spacing: 2px; color: #f59e0b; font-weight: 800; text-transform: uppercase;">LIVE PROPERTY AUCTION</span>
+                            <h2 id="auction-property" style="font-size: 1.35rem; font-weight: 900; color: #fff; margin: 0; line-height: 1.2;">PROPERTY</h2>
+                        </div>
                     </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">CURRENT HIGHEST BID</div>
-                        <div id="auction-bid" style="font-size: 2.2rem; font-weight: 900; color: #22c55e; line-height: 1;">$10</div>
-                    </div>
-                </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 8px 16px; border-radius: 10px; flex-wrap: wrap; gap: 10px;">
-                    <div id="auction-leader" style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;">Highest Bidder: NONE</div>
-                    <div id="auction-timer" style="font-size: 1rem; font-weight: 900; color: #ef4444;">15s REMAINING</div>
+                    <!-- LEADER BADGE & TIMER -->
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); text-align: left;">
+                            <span style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">TOP BIDDER</span>
+                            <div id="auction-leader" style="font-size: 0.85rem; font-weight: 800; color: #f8fafc;">NONE</div>
+                        </div>
+                        <div id="auction-timer" style="font-size: 0.88rem; font-weight: 900; color: #ef4444; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; border-radius: 8px; letter-spacing: 1px;">
+                            15s REMAINING
+                        </div>
+                    </div>
+
+                    <!-- CURRENT HIGH BID -->
+                    <div style="text-align: right; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 800; text-transform: uppercase;">CURRENT BID:</span>
+                        <div id="auction-bid" style="font-size: 1.9rem; font-weight: 900; color: #22c55e; line-height: 1;">$10</div>
+                    </div>
                 </div>
 
                 <!-- DYNAMIC GRID OF BIDDER CARDS (UP TO 8 LOCAL/HUMAN PLAYERS) -->
                 <div>
-                    <div style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; text-align: left;">Combatant Bidding Stations:</div>
-                    <div id="auction-players-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                    <div id="auction-players-grid" style="display: grid; gap: 8px;">
                         <!-- Injected dynamically via JS with custom bid buttons per player -->
                     </div>
                 </div>
 
                 <!-- Bot Status & Activity Log -->
-                <div id="auction-bot-status" style="font-size: 0.75rem; color: #cbd5e1; background: rgba(255,255,255,0.04); padding: 6px 12px; border-radius: 8px;">
+                <div id="auction-bot-status" style="font-size: 0.72rem; color: #94a3b8; background: rgba(255,255,255,0.03); padding: 5px 10px; border-radius: 6px; text-align: center;">
                     🤖 Automated AI bots bid in real time in the background
                 </div>
             </div>
@@ -133,11 +144,11 @@
                 </div>
 
                 <!-- BOTTOM COMMAND CONSOLE -->
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 18px; flex-wrap: wrap; gap: 14px;">
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button id="lobby-modal-add-bot" class="glass-btn" style="padding: 9px 14px; font-size: 0.82rem; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px;">+ Add Bot 🤖</button>
-                        <button id="lobby-modal-add-2-bots" class="glass-btn" style="padding: 9px 14px; font-size: 0.82rem; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px;">+ 2 Bots</button>
-                        <button id="lobby-modal-add-local" class="glass-btn" style="padding: 9px 14px; font-size: 0.82rem; font-weight: 800; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px;">+ Add Local Player</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="lobby-modal-add-bot" class="glass-btn" style="padding: 10px 16px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, #7c3aed, #6d28d9); border: 1px solid #a78bfa; color: #fff; border-radius: 10px; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4); cursor: pointer;">+ Add Bot 🤖</button>
+                        <button id="lobby-modal-add-2-bots" class="glass-btn" style="padding: 10px 16px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: 1px solid #c4b5fd; color: #fff; border-radius: 10px; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4); cursor: pointer;">+ 2 Bots</button>
+                        <button id="lobby-modal-add-local" class="glass-btn" style="padding: 10px 16px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, #0284c7, #0369a1); border: 1px solid #38bdf8; color: #fff; border-radius: 10px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); cursor: pointer;">+ Add Local Player</button>
                     </div>
 
                     <div id="monopoly-lobby-deploy-container" style="flex: 1; max-width: 380px; text-align: right;">
@@ -392,6 +403,6 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/audio.js?v=16"></script>
     <script src="/monopoly/boardData.js?v=16"></script>
-    <script src="/monopoly/game.js?v=16"></script>
+    <script src="/monopoly/game.js?v=17"></script>
 </body>
 </html>

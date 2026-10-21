@@ -509,25 +509,48 @@ th { color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-transf
 }
 
 .pubg-slot-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
   font-family: 'Rajdhani', sans-serif;
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   letter-spacing: 1px;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   text-transform: uppercase;
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
-.pubg-slot-btn:hover {
-  background: rgba(0, 240, 255, 0.15);
-  border-color: #00f0ff;
-  color: #00f0ff;
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+
+.pubg-slot-btn.btn-add-local {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.25), rgba(2, 132, 199, 0.15));
+  border: 1.5px solid #0284c7;
+  color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+}
+.pubg-slot-btn.btn-add-local:hover {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+  transform: translateY(-1px);
+}
+
+.pubg-slot-btn.btn-add-bot {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(168, 85, 247, 0.15));
+  border: 1.5px solid #a855f7;
+  color: #c084fc;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25);
+}
+.pubg-slot-btn.btn-add-bot:hover {
+  background: linear-gradient(135deg, #a855f7, #9333ea);
+  color: #ffffff;
+  border-color: #c084fc;
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+  transform: translateY(-1px);
 }
 
 /* Deploy Button */

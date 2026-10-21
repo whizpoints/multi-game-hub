@@ -124,13 +124,13 @@ function createPodiumCardHtml(p, rank, rankClass, podiumClass) {
     <div class="podium-card ${podiumClass}">
       <div class="podium-rank-badge ${rankClass}">${rank === 1 ? '👑' : rank}</div>
       <div class="podium-name">
-        <span onclick="openPlayerProfile('${p.name}')" style="cursor: pointer; color: #fff; text-decoration: underline dotted var(--cyan);">${p.name}</span>
+        <span onclick="openPlayerProfile('${p.name}')" style="cursor: pointer; color: #0f172a; font-weight: 800; font-size: 1.35rem; text-decoration: none;">${p.name}</span>
       </div>
       <div style="display: flex; gap: 6px; justify-content: center; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
         ${tierBadge}
         ${verifiedTag}
       </div>
-      <div class="podium-score">${Number(p.score).toLocaleString()} <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: 700;">RP</span></div>
+      <div class="podium-score">${Number(p.score).toLocaleString()} <span style="font-size: 0.75rem; color: #64748b; font-weight: 800;">RP</span></div>
       <div class="podium-stats">
         <span>🏆 <strong>${p.gamesWon}</strong> Wins</span>
         <span>•</span>
@@ -152,12 +152,12 @@ function createRunnerCardHtml(p, rank) {
       <div class="runner-info">
         <span class="runner-rank">#${rank}</span>
         <div>
-          <div style="font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px;">
+          <div style="font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px; font-size: 1.05rem;">
             <span onclick="openPlayerProfile('${p.name}')" style="cursor: pointer;">${p.name}</span>
             ${verifiedTag}
           </div>
-          <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">
-            ${p.gamesWon} Wins • ${p.winRate}% Win Rate • ${p.score} RP
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 3px; font-weight: 600;">
+            ${p.gamesWon} Wins • ${p.winRate}% Win Rate • ${Number(p.score).toLocaleString()} RP
           </div>
         </div>
       </div>
@@ -201,18 +201,20 @@ function renderWinratesChart(players) {
         {
           label: 'Win Rate (%)',
           data: winrates,
-          backgroundColor: 'rgba(0, 240, 255, 0.7)',
-          borderColor: '#00f0ff',
+          backgroundColor: 'rgba(37, 99, 235, 0.85)',
+          borderColor: '#1d4ed8',
           borderWidth: 1.5,
-          borderRadius: 6
+          borderRadius: 8,
+          barPercentage: 0.65
         },
         {
           label: 'Battle Score (RP / 20)',
           data: scores.map(s => Math.round(s / 20)),
-          backgroundColor: 'rgba(245, 158, 11, 0.7)',
-          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(16, 185, 129, 0.85)',
+          borderColor: '#047857',
           borderWidth: 1.5,
-          borderRadius: 6
+          borderRadius: 8,
+          barPercentage: 0.65
         }
       ]
     },
@@ -221,16 +223,24 @@ function renderWinratesChart(players) {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          labels: { color: '#1e293b', font: { family: 'Rajdhani', weight: 700, size: 12 } }
+          position: 'top',
+          labels: { color: '#0f172a', font: { family: 'Rajdhani', weight: 800, size: 12 }, padding: 16 }
+        },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleFont: { family: 'Rajdhani', weight: 800, size: 13 },
+          bodyFont: { family: 'Inter', size: 12 },
+          padding: 10,
+          cornerRadius: 8
         }
       },
       scales: {
         x: {
-          ticks: { color: '#334155', font: { family: 'Rajdhani', weight: 700, size: 12 } },
-          grid: { color: 'rgba(0,0,0,0.06)' }
+          ticks: { color: '#0f172a', font: { family: 'Rajdhani', weight: 800, size: 13 } },
+          grid: { display: false }
         },
         y: {
-          ticks: { color: '#64748b', font: { family: 'Inter', size: 11 } },
+          ticks: { color: '#475569', font: { family: 'Inter', size: 11 } },
           grid: { color: 'rgba(0,0,0,0.06)' }
         }
       }
@@ -269,20 +279,29 @@ function renderTiersChart(tierCounts) {
           '#0284c7',
           '#10b981',
           '#eab308',
-          '#94a3b8',
+          '#64748b',
           '#b45309'
         ],
-        borderWidth: 2,
-        borderColor: '#ffffff'
+        borderWidth: 3,
+        borderColor: '#ffffff',
+        hoverOffset: 6
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '62%',
       plugins: {
         legend: {
           position: 'right',
-          labels: { color: '#1e293b', font: { family: 'Rajdhani', weight: 700, size: 11 } }
+          labels: { color: '#0f172a', font: { family: 'Rajdhani', weight: 800, size: 12 }, padding: 10 }
+        },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleFont: { family: 'Rajdhani', weight: 800, size: 13 },
+          bodyFont: { family: 'Inter', size: 12 },
+          padding: 10,
+          cornerRadius: 8
         }
       }
     }
@@ -371,35 +390,35 @@ async function openMatchDetails(matchId) {
     const participantsList = (m.players || []).map((p, idx) => {
       const isWinner = (p.name && m.winner_name && p.name.toLowerCase() === m.winner_name.toLowerCase());
       return `
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,${isWinner ? '0.08' : '0.03'}); border: 1px solid ${isWinner ? 'rgba(245, 158, 11, 0.4)' : 'rgba(255,255,255,0.08)'}; border-radius: 10px; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: ${isWinner ? 'rgba(245, 158, 11, 0.12)' : 'rgba(241, 245, 249, 0.85)'}; border: 1px solid ${isWinner ? 'rgba(245, 158, 11, 0.4)' : 'rgba(203, 213, 225, 0.8)'}; border-radius: 10px; margin-bottom: 8px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-weight: 900; color: ${isWinner ? '#fbbf24' : '#64748b'};">#${idx + 1}</span>
-            <span style="font-weight: 800; color: #fff; cursor: pointer;" onclick="openPlayerProfile('${p.name}')">${p.name}</span>
-            ${p.isBot ? '<span style="font-size: 0.65rem; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 4px;">BOT</span>' : ''}
+            <span style="font-weight: 900; color: ${isWinner ? '#b45309' : '#64748b'};">#${idx + 1}</span>
+            <span style="font-weight: 800; color: #0f172a; cursor: pointer;" onclick="openPlayerProfile('${p.name}')">${p.name}</span>
+            ${p.isBot ? '<span style="font-size: 0.65rem; background: rgba(168,85,247,0.15); color: #7c3aed; font-weight: 800; padding: 2px 6px; border-radius: 4px;">BOT</span>' : ''}
           </div>
-          <span style="font-size: 0.8rem; font-weight: 800; color: ${isWinner ? '#fbbf24' : 'var(--text-dim)'};">${isWinner ? '👑 CROWNED WINNER' : 'DEFEATED'}</span>
+          <span style="font-size: 0.8rem; font-weight: 800; color: ${isWinner ? '#b45309' : '#64748b'};">${isWinner ? '👑 CROWNED WINNER' : 'DEFEATED'}</span>
         </div>
       `;
     }).join('');
 
     content.innerHTML = `
       <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; margin-bottom: 20px;">
-        <span style="font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); font-weight: 800;">OFFICIAL BATTLE REPORT • #${m.id}</span>
-        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; color: #fff; margin-top: 4px;">${isMonopoly ? '🎩 MEGACITY MONOPOLY MATCH' : '🎲 LUDO ROYALE ENGAGEMENT'}</h2>
-        <div style="font-size: 0.82rem; color: var(--text-dim); margin-top: 4px;">${dateFormatted}</div>
+        <span style="font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--blue); font-weight: 800;">OFFICIAL BATTLE REPORT • #${m.id}</span>
+        <h2 style="font-family: var(--font-heading); font-size: 1.8rem; color: #0f172a; font-weight: 900; margin-top: 4px;">${isMonopoly ? '🎩 MEGACITY MONOPOLY MATCH' : '🎲 LUDO ROYALE ENGAGEMENT'}</h2>
+        <div style="font-size: 0.82rem; color: #64748b; margin-top: 4px;">${dateFormatted}</div>
       </div>
 
-      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 42, 0.6)); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 14px; padding: 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
+      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(254, 243, 199, 0.85)); border: 1.5px solid rgba(245, 158, 11, 0.5); border-radius: 14px; padding: 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px;">
         <div style="font-size: 2.2rem;">🏆</div>
         <div>
-          <div style="font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; color: #fbbf24; font-weight: 800;">VICTORY DECREE</div>
-          <div style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 900; color: #fff;">${m.winner_name || 'Draw'}</div>
-          <div style="font-size: 0.8rem; color: var(--text-muted);">Emerged victorious over ${(m.players || []).length} participating combatants.</div>
+          <div style="font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; color: #b45309; font-weight: 800;">VICTORY DECREE</div>
+          <div style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 900; color: #0f172a;">${m.winner_name || 'Draw'}</div>
+          <div style="font-size: 0.82rem; color: #475569; font-weight: 600;">Emerged victorious over ${(m.players || []).length} participating combatants.</div>
         </div>
       </div>
 
       <div style="margin-bottom: 20px;">
-        <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Participant Roster Breakdown</h3>
+        <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: #0f172a; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Participant Roster Breakdown</h3>
         ${participantsList}
       </div>
 
@@ -443,13 +462,13 @@ async function openPlayerProfile(playerName) {
     const recentMatchesRows = (p.recentMatches || []).map(m => {
       const isWinner = m.winner_name && m.winner_name.toLowerCase() === p.name.toLowerCase();
       return `
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(241, 245, 249, 0.85); border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span>${m.gameType === 'Monopoly' ? '🎩' : '🎲'}</span>
-            <span style="font-weight: 700; color: #fff;">${m.gameType || 'Ludo'}</span>
-            <span style="color: var(--text-dim);">#${m.id}</span>
+            <span style="font-weight: 700; color: #0f172a;">${m.gameType || 'Ludo'}</span>
+            <span style="color: #64748b;">#${m.id}</span>
           </div>
-          <span style="font-weight: 800; color: ${isWinner ? '#fbbf24' : 'var(--text-dim)'};">${isWinner ? '👑 VICTORY' : 'PARTICIPANT'}</span>
+          <span style="font-weight: 800; color: ${isWinner ? '#b45309' : '#64748b'};">${isWinner ? '👑 VICTORY' : 'PARTICIPANT'}</span>
         </div>
       `;
     }).join('') || '<div style="color: var(--text-dim); font-size: 0.8rem;">No recent matches logged yet.</div>';

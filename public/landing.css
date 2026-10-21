@@ -348,35 +348,56 @@ body::before {
   margin-top: 4px;
 }
 
-/* Dual Tab Switcher */
-.wall-tabs {
-  display: flex;
+/* Dual Tab Switcher (Wall of Fame Tabs) */
+.tab-switcher, .wall-tabs {
+  display: inline-flex;
   gap: 8px;
-  background: rgba(241, 245, 249, 0.9);
-  padding: 4px;
-  border-radius: 14px;
-  border: 1px solid var(--border-subtle);
+  background: rgba(241, 245, 249, 0.95);
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
 }
 
-.wall-tab-btn {
+.tab-btn, .wall-tab-btn {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #475569;
   font-family: var(--font-heading);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 800;
-  letter-spacing: 1px;
-  padding: 8px 18px;
-  border-radius: 10px;
+  letter-spacing: 0.8px;
+  padding: 10px 22px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.wall-tab-btn.active {
-  background: #fff;
-  color: var(--blue);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+.tab-btn:hover, .wall-tab-btn:hover {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.tab-btn.active, .wall-tab-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+#tab-ludo.active {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+}
+
+#tab-monopoly.active {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
 }
 
 /* Podium Cards Grid */
@@ -509,14 +530,15 @@ body::before {
 }
 
 /* Runners Up (#4 and #5) */
-.runners-container {
+.runners-grid, .runners-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  margin-top: 18px;
 }
 
 @media (max-width: 600px) {
-  .runners-container { grid-template-columns: 1fr; }
+  .runners-grid, .runners-container { grid-template-columns: 1fr; }
 }
 
 .runner-card {
@@ -643,38 +665,58 @@ body::before {
 /* ── BATTLE ANALYTICS (CHART.JS GLASS CARDS) ────────────────────── */
 .analytics-grid {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1.55fr 1fr;
   gap: 24px;
+  align-items: stretch;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .analytics-grid { grid-template-columns: 1fr; }
 }
 
-.analytics-card {
+.chart-card, .analytics-card {
   background: var(--bg-card);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: 1px solid var(--border-glass);
   border-radius: 24px;
-  padding: 24px;
+  padding: 26px 28px;
   box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.analytics-card h3 {
+.chart-card:hover, .analytics-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  background: var(--bg-card-hover);
+}
+
+.chart-card-title, .analytics-card h3 {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 800;
   color: var(--text-main);
   margin-bottom: 4px;
-  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.chart-wrapper {
+.chart-card-desc {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.chart-wrap, .chart-wrapper {
   position: relative;
-  height: 280px;
+  height: 310px;
   width: 100%;
-  margin-top: 15px;
+  flex: 1;
 }
 
 /* ── RECENT MATCHES (MATCH INTEL) ───────────────────────────────── */
