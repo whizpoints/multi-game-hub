@@ -178,8 +178,6 @@ window.logoutUser = function() {
     window.showUserSelectionModal(true);
 };
 
-ensureUserProfile();
-
 socket.on('errorMsg', (msg) => {
     Swal.fire({
         title: 'Notice',
@@ -390,6 +388,10 @@ window.promptEditName = function() {
     window.showUserSelectionModal();
 };
 
+// Safely initialize user profile and trade controls after modals are registered
+ensureUserProfile();
+setTimeout(() => { if (typeof initTradeModal === 'function') initTradeModal(); }, 100);
+
 function renderPlayersList(state) {
     const list = document.getElementById('players-list');
     if (list) {
@@ -402,28 +404,24 @@ function renderPlayersList(state) {
             const isMyTurn = (state.currentTurnIndex === idx);
             const isYou = (uuid === myUuid);
             
-            // Ultra-compact single-line player card designed so 8 players fit cleanly with zero overlap
+            // Clean, light-themed player row matching modern Flutter glassmorphism UI
             const html = `
-            <div class="player-card" data-uuid="${uuid}" style="${isMyTurn ? 'border: 1.5px solid #00f0ff; background: rgba(0, 240, 255, 0.12); box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);' : 'border: 1px solid rgba(255,255,255,0.08); background: #131b2e;'} color: #fff; border-radius: 8px; padding: 4px 8px; margin-bottom: 4px; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 34px;">
-                <div style="width: 3px; background: ${player.color}; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px 0 0 8px;"></div>
+            <div class="player-card ${isMyTurn ? 'active-turn' : ''}" data-uuid="${uuid}" style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; margin-bottom: 5px; border-radius: 9px; min-height: 38px; ${isMyTurn ? 'border: 2px solid #0284c7; background: #f0f9ff; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.22);' : 'border: 1.5px solid #e2e8f0; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.04);'};">
+                <div style="width: 4px; background: ${player.color}; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 9px 0 0 9px;"></div>
                 
-                <!-- Operative Symbol + Username + Pro / Bot Badge on the same line -->
-                <div style="display: flex; align-items: center; gap: 5px; overflow: hidden; padding-left: 3px; flex: 1;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px; border-radius: 50%; border: 1.5px solid ${player.color}; color: ${player.color}; flex-shrink: 0; font-size: 0.82rem;">${player.symbol || '🎩'}</span>
-                    <span style="font-weight: 800; font-size: 0.8rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="${player.username}">${player.username}</span>
-                    ${isYou ? '<span style="color:#00f0ff; font-size:0.62rem; font-weight:800; flex-shrink:0;">(You)</span>' : ''}
-                    ${player.verified ? `<span style="font-size: 0.58rem; font-weight: 900; padding: 1px 4px; border-radius: 3px; background: rgba(0,240,255,0.18); border: 1px solid #00f0ff; color: #00f0ff; line-height: 1; flex-shrink:0;">PRO</span>` : ''}
-                    ${player.isBot ? `<span style="font-size: 0.58rem; font-weight: 800; padding: 1px 4px; border-radius: 3px; background: rgba(168,85,247,0.2); border: 1px solid #a855f7; color: #d8b4fe; line-height: 1; flex-shrink:0;">BOT</span>` : ''}
+                <!-- Operative Symbol + Username (without irrelevant WAIT/BOT/PRO badges to maximize name space) -->
+                <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; padding-left: 2px; flex: 1;">
+                    <span class="player-token-icon" style="width: 22px; height: 22px; min-width: 22px; max-width: 22px; border-radius: 50%; border: 1.5px solid ${player.color}; color: ${player.color}; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">${player.symbol || '🎩'}</span>
+                    <span style="font-weight: 800; font-size: 0.88rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 145px;" title="${player.username}">${player.username}</span>
+                    ${isYou ? '<span style="color:#0284c7; font-size:0.72rem; font-weight:800; flex-shrink:0;">(You)</span>' : ''}
+                    ${player.inJail ? '<span style="font-size: 0.62rem; font-weight: 800; color: #ef4444; background: #fee2e2; border: 1px solid #f87171; padding: 1px 4px; border-radius: 4px; flex-shrink: 0;">JAIL</span>' : ''}
                 </div>
 
-                <!-- Cash + Turn/Jail status on the same line -->
-                <div style="display: flex; align-items: center; gap: 5px; flex-shrink: 0;">
-                    <span style="font-size: 0.82rem; font-weight: 900; color: #22c55e;">$${Math.round(player.cash).toLocaleString()}</span>
-                    <span style="font-size: 0.6rem; font-weight: 800; padding: 1px 5px; border-radius: 4px; letter-spacing: 0.5px; ${player.inJail ? 'background: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid #ef4444;' : (isMyTurn ? 'background: #00f0ff; color: #050b14; font-weight: 900;' : 'background: rgba(255,255,255,0.06); color: #94a3b8;')}">
-                        ${player.inJail ? 'JAIL' : (isMyTurn ? 'TURN' : 'WAIT')}
-                    </span>
-                    ${state.status === 'LOBBY' && uuid === myUuid ? `<button onclick="window.promptEditName()" style="background: transparent; border: none; color: #38bdf8; font-size: 0.8rem; cursor: pointer; padding: 0 1px;" title="Edit Name">✎</button>` : ''}
-                    ${state.status === 'LOBBY' && uuid !== myUuid ? `<button onclick="window.socket.emit('removePlayer', '${uuid}')" style="background: transparent; border: none; color: #ef4444; font-size: 0.9rem; cursor: pointer; padding: 0 1px;" title="Remove Player">&times;</button>` : ''}
+                <!-- Cash + Lobby Quick Controls -->
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span style="font-size: 0.95rem; font-weight: 900; color: #16a34a; letter-spacing: 0.3px;">$${Math.round(player.cash).toLocaleString()}</span>
+                    ${state.status === 'LOBBY' && uuid === myUuid ? `<button onclick="window.promptEditName()" style="background: #e0f2fe; border: 1px solid #38bdf8; color: #0284c7; font-size: 0.72rem; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-weight: 700;" title="Edit Name">✎</button>` : ''}
+                    ${state.status === 'LOBBY' && uuid !== myUuid ? `<button onclick="window.socket.emit('removePlayer', '${uuid}')" style="background: #fee2e2; border: 1px solid #f87171; color: #dc2626; font-size: 0.75rem; cursor: pointer; padding: 2px 6px; border-radius: 4px; font-weight: 700;" title="Remove Player">&times;</button>` : ''}
                 </div>
             </div>
             `;
@@ -532,16 +530,17 @@ function renderPubgLobbyOverlay(state) {
 
         const card = document.createElement('div');
         card.style.cssText = `
-            background: linear-gradient(165deg, rgba(20, 28, 48, 0.9), rgba(10, 14, 25, 0.95));
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
             border-radius: 16px;
             padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 10px;
             position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
             text-align: left;
+            color: #0f172a;
         `;
 
         card.innerHTML = `
@@ -549,40 +548,40 @@ function renderPubgLobbyOverlay(state) {
                 <span style="font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; padding: 2px 7px; border-radius: 6px; background: ${tierColor}18; color: ${tierColor}; border: 1px solid ${tierColor}66;">
                     ${tierIcon} ${tierName}
                 </span>
-                ${isPlayerHost ? `<span style="font-size: 0.65rem; font-weight: 900; color: #fbbf24; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); padding: 2px 6px; border-radius: 999px;">★ SQUAD LEADER</span>` : ''}
+                ${isPlayerHost ? `<span style="font-size: 0.65rem; font-weight: 900; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 2px 6px; border-radius: 999px;">★ SQUAD LEADER</span>` : ''}
             </div>
 
             <div style="display: flex; align-items: center; justify-content: center; position: relative; margin: 4px 0 8px;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid ${player.color}; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: rgba(15, 23, 42, 0.8); box-shadow: 0 0 16px ${player.color}55;">
-                    ${player.symbol || '🎩'}
+                <div style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid ${player.color}; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; background: #f8fafc; box-shadow: 0 4px 12px rgba(0,0,0,0.06); overflow: hidden;">
+                    <span class="player-token-icon" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">${player.symbol || '🎩'}</span>
                 </div>
                 <span style="position: absolute; bottom: -6px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.2); color: #e2e8f0; font-family: monospace; font-size: 0.62rem; font-weight: 800; padding: 1px 5px; border-radius: 4px;">LV. ${levelNum}</span>
             </div>
 
             <div>
-                <div style="font-family: 'Rajdhani', sans-serif; font-size: 1.15rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${player.username} ${isYou ? '<span style="color:#00f0ff; font-size:0.75rem;">(You)</span>' : ''}
+                <div style="font-family: 'Rajdhani', sans-serif; font-size: 1.15rem; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${player.username} ${isYou ? '<span style="color:#0284c7; font-size:0.75rem;">(You)</span>' : ''}
                 </div>
 
                 <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px;">
-                    ${player.verified ? `<span style="background: rgba(0,240,255,0.15); border: 1px solid #00f0ff; color: #00f0ff; padding: 2px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 900;">✓ VERIFIED PRO</span>` : ''}
-                    ${player.isBot ? `<span style="background: rgba(168,85,247,0.18); border: 1px solid #a855f7; color: #d8b4fe; padding: 2px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 800;">🤖 AI • ${player.botTrait || 'TYCOON'}</span>` : ''}
+                    ${player.verified ? `<span style="background: #e0f2fe; border: 1px solid #38bdf8; color: #0284c7; padding: 2px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 900;">✓ VERIFIED PRO</span>` : ''}
+                    ${player.isBot ? `<span style="background: #f3e8ff; border: 1px solid #c084fc; color: #7e22ce; padding: 2px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 800;">🤖 AI • ${player.botTrait || 'TYCOON'}</span>` : ''}
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 5px 8px; border-radius: 6px; font-size: 0.72rem; color: #cbd5e1; font-weight: 700;">
-                <span style="color: #22c55e; font-weight: 900;">💰 $${Math.round(player.cash).toLocaleString()}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 5px 8px; border-radius: 6px; font-size: 0.72rem; color: #334155; font-weight: 700;">
+                <span style="color: #16a34a; font-weight: 900;">💰 $${Math.round(player.cash).toLocaleString()}</span>
                 <span>⭐ ${scoreVal} RP</span>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; margin-top: auto;">
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 900; color: #10b981;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 8px; margin-top: auto;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 900; color: #16a34a;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 6px #16a34a;"></span>
                     <span>READY</span>
                 </div>
                 <div>
-                    ${state.status === 'LOBBY' && uuid === myUuid ? `<button onclick="window.promptEditName()" style="background: transparent; border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; cursor: pointer;">✎ Edit</button>` : ''}
-                    ${state.status === 'LOBBY' && (isHost || uuid === myUuid) && !isPlayerHost ? `<button onclick="window.socket.emit('removePlayer', '${uuid}')" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 4px;">✕ Kick</button>` : ''}
+                    ${state.status === 'LOBBY' && uuid === myUuid ? `<button onclick="window.promptEditName()" style="background: #e0f2fe; border: 1px solid #38bdf8; color: #0284c7; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-weight: 700;">✎ Edit</button>` : ''}
+                    ${state.status === 'LOBBY' && (isHost || uuid === myUuid) && !isPlayerHost ? `<button onclick="window.socket.emit('removePlayer', '${uuid}')" style="background: #fee2e2; border: 1px solid #f87171; color: #dc2626; font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-weight: 700; margin-left: 4px;">✕ Kick</button>` : ''}
                 </div>
             </div>
         `;
@@ -596,8 +595,8 @@ function renderPubgLobbyOverlay(state) {
         const slotIdx = state.turnOrder.length + i + 1;
         const emptyCard = document.createElement('div');
         emptyCard.style.cssText = `
-            background: rgba(15, 23, 42, 0.4);
-            border: 2px dashed rgba(255, 255, 255, 0.15);
+            background: rgba(248, 250, 252, 0.85);
+            border: 2px dashed #cbd5e1;
             border-radius: 16px;
             padding: 18px 12px;
             display: flex;
@@ -613,14 +612,14 @@ function renderPubgLobbyOverlay(state) {
             <div style="font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; color: #64748b;">
                 OPERATIVE 0${slotIdx}
             </div>
-            <div style="width: 48px; height: 48px; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 1.4rem;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; border: 1.5px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 1.4rem; background: #ffffff;">
                 ＋
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
-                <button onclick="window.showAddLocalPlayerModal()" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; padding: 6px 8px; border-radius: 8px; cursor: pointer; text-transform: uppercase;">
+                <button onclick="window.showAddLocalPlayerModal()" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: 1px solid #38bdf8; color: #ffffff; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.78rem; letter-spacing: 1px; padding: 7px 10px; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
                     + Local Operative
                 </button>
-                <button onclick="window.socket.emit('addBot')" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; padding: 6px 8px; border-radius: 8px; cursor: pointer; text-transform: uppercase;">
+                <button onclick="window.socket.emit('addBot')" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); border: 1px solid #a78bfa; color: #ffffff; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 0.78rem; letter-spacing: 1px; padding: 7px 10px; border-radius: 8px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);">
                     + AI Bot 🤖
                 </button>
             </div>
@@ -1167,7 +1166,7 @@ function updateControls(state) {
         const leader = state.players[state.auction.highestBidder];
         const leaderEl = document.getElementById('auction-leader');
         if (leader) {
-            leaderEl.innerHTML = `<span style="color: ${leader.color}; font-weight: 900;">${leader.symbol} ${leader.username}</span>`;
+            leaderEl.innerHTML = `<span class="token-icon" style="width: 20px; height: 20px; min-width: 20px; max-width: 20px; display: inline-flex; align-items: center; justify-content: center; color: ${leader.color}; flex-shrink: 0; overflow: hidden;">${leader.symbol || '🎩'}</span> <span style="color: ${leader.color}; font-weight: 900;">${leader.username}</span>`;
         } else {
             leaderEl.textContent = 'NONE';
         }
@@ -1186,6 +1185,7 @@ function updateControls(state) {
             } else {
                 gridEl.style.gridTemplateColumns = 'repeat(4, 1fr)';
             }
+            gridEl.style.gap = '10px';
             
             humanPlayers.forEach(p => {
                 const isActive = (state.auction.activeBidders || []).includes(p.uuid);
@@ -1195,44 +1195,46 @@ function updateControls(state) {
                 const next100 = state.auction.currentBid + 100;
 
                 const card = document.createElement('div');
+                card.className = 'auction-card';
                 card.style.cssText = `
-                    background: ${isLeader ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(15, 23, 42, 0.95))' : 'rgba(17, 24, 39, 0.95)'};
-                    border: 1.5px solid ${isLeader ? '#f59e0b' : (isActive ? 'rgba(0, 240, 255, 0.35)' : 'rgba(239, 68, 68, 0.35)')};
-                    border-radius: 10px;
-                    padding: 8px 10px;
+                    background: ${isLeader ? '#fffbeb' : (isActive ? '#ffffff' : '#f8fafc')};
+                    border: 1.5px solid ${isLeader ? '#f59e0b' : (isActive ? '#0284c7' : '#cbd5e1')};
+                    border-radius: 12px;
+                    padding: 9px 11px;
                     display: flex;
                     flex-direction: column;
                     gap: 6px;
-                    box-shadow: ${isLeader ? '0 0 16px rgba(245, 158, 11, 0.4)' : 'none'};
+                    box-shadow: ${isLeader ? '0 4px 14px rgba(245, 158, 11, 0.22)' : '0 2px 6px rgba(0,0,0,0.04)'};
                     opacity: ${isActive ? '1' : '0.45'};
                     transition: all 0.2s;
+                    text-align: left;
                 `;
 
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 5px; text-align: left; overflow: hidden;">
-                            <span style="font-size: 1.15rem; flex-shrink: 0;">${p.symbol}</span>
-                            <div style="overflow: hidden;">
-                                <div style="font-weight: 800; font-size: 0.8rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 95px;" title="${p.username}">${p.username}</div>
-                                <div style="font-size: 0.72rem; color: #22c55e; font-weight: 900;">$${Math.round(p.cash).toLocaleString()}</div>
+                        <div style="display: flex; align-items: center; gap: 6px; text-align: left; overflow: hidden; flex: 1;">
+                            <span class="token-icon" style="width: 20px; height: 20px; min-width: 20px; max-width: 20px; display: inline-flex; align-items: center; justify-content: center; color: ${p.color}; flex-shrink: 0; overflow: hidden;">${p.symbol || '🎩'}</span>
+                            <div style="overflow: hidden; flex: 1;">
+                                <div style="font-weight: 800; font-size: 0.85rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;" title="${p.username}">${p.username}</div>
+                                <div style="font-size: 0.75rem; color: #16a34a; font-weight: 900;">$${Math.round(p.cash).toLocaleString()}</div>
                             </div>
                         </div>
-                        <span style="font-size: 0.62rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px; background: ${isLeader ? '#f59e0b' : (isActive ? '#10b981' : '#ef4444')}; color: #000; flex-shrink: 0;">
+                        <span style="font-size: 0.62rem; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px; background: ${isLeader ? '#f59e0b' : (isActive ? '#dcfce7' : '#fee2e2')}; color: ${isLeader ? '#ffffff' : (isActive ? '#15803d' : '#b91c1c')}; border: 1px solid ${isLeader ? '#d97706' : (isActive ? '#86efac' : '#fca5a5')}; flex-shrink: 0;">
                             ${isLeader ? '👑 LEADER' : (isActive ? 'ACTIVE' : 'FOLDED')}
                         </span>
                     </div>
 
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
-                        <button class="glass-btn" style="padding: 6px 2px; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: 1px solid #60a5fa; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next10) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: 1px solid #3b82f6; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next10) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${(!isActive || p.cash < next10) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 10)">+$10</button>
-                        <button class="glass-btn" style="padding: 6px 2px; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: 1px solid #a78bfa; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next50) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: 1px solid #8b5cf6; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next50) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${(!isActive || p.cash < next50) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 50)">+$50</button>
-                        <button class="glass-btn" style="padding: 6px 2px; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #db2777, #be185d); color: #fff; border: 1px solid #f472b6; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next100) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: 1px solid #38bdf8; border-radius: 6px; cursor: pointer; ${(!isActive || p.cash < next100) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${(!isActive || p.cash < next100) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 100)">+$100</button>
-                        <button class="glass-btn" style="padding: 6px 2px; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: 1px solid #f87171; border-radius: 6px; cursor: pointer; ${!isActive ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn" style="padding: 6px 0; font-size: 0.72rem; font-weight: 900; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: 1px solid #ef4444; border-radius: 6px; cursor: pointer; ${!isActive ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
                             ${!isActive ? 'disabled' : ''} 
                             onclick="window.foldForPlayer('${p.uuid}')">FOLD</button>
                     </div>
@@ -1249,7 +1251,7 @@ function updateControls(state) {
                 const botChips = botList.map(b => {
                     const isBActive = (state.auction.activeBidders || []).includes(b.uuid);
                     const isBLeader = (state.auction.highestBidder === b.uuid);
-                    return `<span style="color: ${isBLeader ? '#fbbf24' : (isBActive ? '#60a5fa' : '#94a3b8')}; font-weight: 700;">${b.username} (${isBLeader ? '👑 Leading' : (isBActive ? 'Active' : 'Folded')})</span>`;
+                    return `<span style="color: ${isBLeader ? '#d97706' : (isBActive ? '#0284c7' : '#94a3b8')}; font-weight: 700;">${b.username} (${isBLeader ? '👑 Leading' : (isBActive ? 'Active' : 'Folded')})</span>`;
                 }).join(' • ');
                 botStatusEl.innerHTML = `🤖 AI Bots: ${botChips}`;
             } else {
@@ -1264,12 +1266,16 @@ function updateControls(state) {
     const turnIndicator = document.getElementById('turn-indicator');
 
     const inGameControlsEl = document.getElementById('in-game-controls');
+    const sidebarActionBar = document.getElementById('sidebar-action-bar');
+    const centerInGameActions = document.getElementById('center-in-game-actions');
     const lobbyNetworkCard = document.getElementById('lobby-network-card');
     const quitLobbyBtn = document.getElementById('quit-lobby-btn');
 
     if (state.status === 'LOBBY') {
         if (hostControlsEl) hostControlsEl.classList.remove('hidden');
         if (inGameControlsEl) inGameControlsEl.classList.add('hidden');
+        if (sidebarActionBar) sidebarActionBar.style.display = 'none';
+        if (centerInGameActions) centerInGameActions.style.display = 'none';
         if (lobbyNetworkCard) {
             lobbyNetworkCard.classList.remove('hidden');
             lobbyNetworkCard.style.display = 'block';
@@ -1280,6 +1286,8 @@ function updateControls(state) {
             inGameControlsEl.classList.remove('hidden');
             inGameControlsEl.style.display = 'flex';
         }
+        if (sidebarActionBar) sidebarActionBar.style.display = 'flex';
+        if (centerInGameActions) centerInGameActions.style.display = 'flex';
         if (lobbyNetworkCard) {
             lobbyNetworkCard.classList.add('hidden');
             lobbyNetworkCard.style.display = 'none';
@@ -1905,7 +1913,7 @@ socket.on('cardDrawn', (data) => {
 // ====== TRADE & NEGOTIATION LOGIC ======
 
 function initTradeModal() {
-    const openTradeBtn = document.getElementById('open-trade-btn');
+    const tradeButtons = document.querySelectorAll('#open-trade-btn, .open-trade-btn');
     const closeTradeBtn = document.getElementById('close-trade-btn');
     const cancelTradeBtn = document.getElementById('cancel-trade-btn');
     const sendTradeBtn = document.getElementById('send-trade-btn');
@@ -1913,8 +1921,8 @@ function initTradeModal() {
     const overlay = document.getElementById('trade-overlay');
     const statusBox = document.getElementById('trade-status-box');
 
-    if (openTradeBtn) {
-        openTradeBtn.onclick = () => {
+    tradeButtons.forEach(btn => {
+        btn.onclick = () => {
             const state = window.currentGameStateObj;
             if (!state) return;
 
@@ -1934,7 +1942,7 @@ function initTradeModal() {
 
             openTradeDialog();
         };
-    }
+    });
 
     if (closeTradeBtn) closeTradeBtn.onclick = () => overlay.classList.add('hidden');
     if (cancelTradeBtn) cancelTradeBtn.onclick = () => overlay.classList.add('hidden');
@@ -2273,9 +2281,9 @@ window.promptEditName = function() {
     window.showUserSelectionModal();
 };
 
-const quitLobbyBtn = document.getElementById('quit-lobby-btn');
-if (quitLobbyBtn) {
-    quitLobbyBtn.addEventListener('click', () => {
+const quitLobbyButtons = document.querySelectorAll('#quit-lobby-btn, .quit-lobby-btn');
+quitLobbyButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
         Swal.fire({
             title: 'Restart Game & Return to Lobby?',
             text: 'This will reset all properties, cash, and positions so you can add new players or bots!',
@@ -2292,7 +2300,7 @@ if (quitLobbyBtn) {
             }
         });
     });
-}
+});
 
 async function initShareLink() {
     const input = document.getElementById('monopoly-share-url');

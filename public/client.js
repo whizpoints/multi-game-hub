@@ -415,7 +415,7 @@ socket.on('lobbyUpdate', (data) => {
         const clrLabel = clrInfo && clrInfo.label ? `${colorName} (${clrInfo.label})` : colorName;
         options += `<option value="${colorName}" ${disabled} ${selected}>${clrLabel}</option>`;
       });
-      colorSelect = `<select class="glass-input small-select" onchange="window.changePlayerColor('${p.id}', this.value)" style="color:${c.fill};font-weight:700; background: rgba(0,0,0,0.3); border: none; padding: 2px 5px; border-radius: 4px; outline: none; margin-left: 10px;">${options}</select>`;
+      colorSelect = `<select class="glass-input small-select" onchange="window.changePlayerColor('${p.id}', this.value)" style="color:${c.fill};font-weight:800; background: #ffffff; border: 1.5px solid #cbd5e1; padding: 3px 6px; border-radius: 6px; outline: none; margin-left: 8px;">${options}</select>`;
       
       removeBtn = `<button class="btn ghost small" style="padding: 2px 6px; color: #ff4757; margin-left: 10px;" onclick="window.removePlayer('${p.id}')" title="Remove Player">✕</button>`;
     }

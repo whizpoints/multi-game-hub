@@ -29,8 +29,8 @@ body {
 
 /* Sidebars */
 .sidebar {
-    width: 270px; padding: 12px;
-    display: flex; flex-direction: column; gap: 10px;
+    width: 305px; padding: 10px;
+    display: flex; flex-direction: column; gap: 8px;
     flex-shrink: 0; z-index: 10;
     max-height: 100vh; overflow-y: auto;
 }
@@ -606,8 +606,42 @@ body {
     pointer-events: none;
 }
 
-.player-card { background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.2s; overflow: hidden; }
-.player-card svg { width: 30px; height: 30px; }
+.player-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 10px;
+    margin-bottom: 5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    transition: all 0.2s;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 40px;
+}
+.player-card.active-turn {
+    background: #f0f9ff !important;
+    border: 2px solid #0284c7 !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.22) !important;
+}
+
+.token-icon svg,
+.player-token-icon svg,
+.player-card svg,
+#auction-players-grid svg,
+#auction-leader svg,
+.auction-card svg {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+}
 
 /* Mortgaged Overlay - sits over tile background, strictly below player tokens (z:100) and badges (z:30) */
 .owner-strip {
