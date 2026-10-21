@@ -109,11 +109,33 @@ function addMatchResult(playersArr, winnerName) {
 }
 
 function getRecentMatches() {
-  const stmt = db.prepare('SELECT * FROM matches ORDER BY date DESC LIMIT 5');
-  return stmt.all().map(row => ({
-    ...row,
-    players: JSON.parse(row.players_json)
-  }));
+  const stmt = db.prepare('SELECT * FROM matches ORDER BY date DESC LIMIT 15');
+  const rows = stmt.all();
+  return rows.map((row, idx) => {
+    let streak = 1;
+    if (row.winner_name && row.winner_name !== 'Draw') {
+      for (let j = idx + 1; j < rows.length; j++) {
+        if (rows[j].winner_name && rows[j].winner_name.toLowerCase() === row.winner_name.toLowerCase()) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+    }
+    return {
+      ...row,
+      streak,
+      players: JSON.parse(row.players_json || '[]')
+    };
+  });
+}
+
+function getOrCreatePlayer(name) {
+  if (!name) return null;
+  const cleanName = name.trim();
+  const existing = db.prepare('SELECT id, name FROM players WHERE name = ? COLLATE NOCASE').get(cleanName);
+  if (existing) return existing;
+  return registerPlayer(cleanName, '1234');
 }
 
 module.exports = {
@@ -125,5 +147,6 @@ module.exports = {
   getAllPlayersWithStats,
   deletePlayer,
   addMatchResult,
-  getRecentMatches
+  getRecentMatches,
+  getOrCreatePlayer
 };

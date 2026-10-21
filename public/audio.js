@@ -64,69 +64,120 @@ function playSoftNoise(duration, vol) {
   noiseSource.start();
 }
 
-let bgmStarted = false;
-function startBGM() {
-  if (bgmStarted) return;
-  bgmStarted = true;
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+// Function to play a crisp percussive clack for tumbling dice
+function playDiceClack(pitch = 380, vol = 0.4) {
+  try {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
 
-  // Very soft, breathing ambient drone using pure sine waves
-  const freqs = [130.81, 164.81, 196.00]; // C3, E3, G3
-  
-  const droneGain = audioCtx.createGain();
-  droneGain.gain.value = 0.02; // Very quiet overall
-  droneGain.connect(masterCompressor);
-
-  // Slow LFO to make the drone "breathe"
-  const lfo = audioCtx.createOscillator();
-  lfo.type = 'sine';
-  lfo.frequency.value = 0.1; // 10 seconds per cycle
-  const lfoGain = audioCtx.createGain();
-  lfoGain.gain.value = 0.015; // Modulate amplitude
-  lfo.connect(droneGain.gain);
-  lfo.start();
-
-  freqs.forEach(freq => {
+    // 1. Resonant wooden body tone
     const osc = audioCtx.createOscillator();
-    osc.type = 'sine'; // Sine is perfectly smooth, no harshness
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    osc.connect(droneGain);
-    osc.start();
-  });
+    const oscGain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(pitch, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.05);
 
-  // Soft rhythmic kick (heartbeat style)
-  setInterval(() => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    oscGain.gain.setValueAtTime(vol * 0.75, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+    osc.connect(oscGain);
+    oscGain.connect(masterCompressor);
+    osc.start(now);
+    osc.stop(now + 0.055);
+
+    // 2. High crisp transient clack
+    const bufferSize = Math.floor(audioCtx.sampleRate * 0.04);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.28));
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
     
-    osc.type = 'sine';
-    // Pitch envelope for soft kick
-    osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-    
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-    
-    osc.connect(gain);
-    gain.connect(masterCompressor);
-    
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.5);
-  }, 2000); 
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(pitch * 2.8, now);
+    filter.Q.value = 1.8;
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(vol, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(masterCompressor);
+
+    noise.start(now);
+    noise.stop(now + 0.05);
+  } catch (e) {}
 }
 
-window.addEventListener('click', startBGM, { once: true });
+const unlockAudio = () => {
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+};
+window.addEventListener('click', unlockAudio, { passive: true });
+window.addEventListener('touchstart', unlockAudio, { passive: true });
+window.addEventListener('pointerdown', unlockAudio, { passive: true });
+window.addEventListener('keydown', unlockAudio, { passive: true });
 
 window.SoundFX = {
   rollDice: () => {
-    // Soft wooden rattle (noise)
-    for (let i = 0; i < 3; i++) {
-      setTimeout(() => playSoftNoise(0.1, 0.4), i * 120);
-    }
+    try {
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      const delays = [0, 50, 110, 180, 260, 350, 450];
+      delays.forEach((delay, idx) => {
+        setTimeout(() => {
+          const vol = 0.52 - (idx * 0.035);
+          const pitch = 320 + Math.random() * 260;
+          playDiceClack(pitch, Math.max(0.22, vol));
+        }, delay);
+      });
+    } catch (e) {}
+  },
+  hop: () => {
+    // Soft, subtle wooden token landing clack (volume reduced)
+    try {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(420, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.06);
+      gain.gain.setValueAtTime(0.045, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+      osc.connect(gain);
+      gain.connect(masterCompressor);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.06);
+    } catch (e) {}
+  },
+  cash: () => {
+    // Crisp coins / transaction chime
+    try {
+      playSmoothTone(987.77, 'sine', 0.12, 0.2); // B5
+      setTimeout(() => playSmoothTone(1318.51, 'sine', 0.22, 0.22), 80); // E6
+    } catch (e) {}
+  },
+  jail: () => {
+    // Heavy jail cell bar clang
+    try {
+      playSmoothTone(120, 'sawtooth', 0.45, 0.3);
+      setTimeout(() => playSmoothTone(85, 'sawtooth', 0.55, 0.35), 140);
+    } catch (e) {}
+  },
+  card: () => {
+    // Card draw flutter
+    try {
+      playSmoothTone(587.33, 'triangle', 0.1, 0.15);
+      setTimeout(() => playSmoothTone(880, 'triangle', 0.16, 0.18), 70);
+    } catch (e) {}
   },
   moveToken: () => {
-    playSmoothTone(350, 'sine', 0.2, 0.1);
+    // Gentle soft moving tap (volume reduced)
+    playSmoothTone(350, 'sine', 0.14, 0.025);
   },
   captureToken: () => {
     playSmoothTone(200, 'sine', 0.3, 0.15);
@@ -138,8 +189,7 @@ window.SoundFX = {
     setTimeout(() => playSmoothTone(783.99, 'sine', 0.8, 0.15), 400);
   },
   turnChange: () => {
-    playSmoothTone(300, 'sine', 0.4, 0.08);
-    setTimeout(() => playSmoothTone(400, 'sine', 0.5, 0.08), 250);
+    // Silenced: turn change beep removed as requested
   },
   winGame: () => {
     [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {

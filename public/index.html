@@ -29,9 +29,13 @@
       <div class="hero-content glass-card">
         <h2 class="hero-title">Welcome to the <span class="highlight">Multi-Game Hub</span></h2>
         <p class="hero-subtitle">Play the ultimate Ludo experience or dominate the property market in Monopoly!</p>
-        <div class="hero-actions" style="display: flex; gap: 20px; justify-content: center;">
+        <div class="hero-actions" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
           <a href="/play" class="btn primary lg action-btn">Play Ludo 🎲</a>
           <a href="/monopoly/index.html" class="btn primary lg action-btn" style="background: #2563eb; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">Play Monopoly 🏙️</a>
+        </div>
+        <div id="lan-ip-card" style="margin-top: 25px; padding: 12px 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; display: inline-flex; align-items: center; gap: 12px; font-size: 0.9rem; flex-wrap: wrap; justify-content: center;">
+          <span>🌐 <strong>Play across Wi-Fi / LAN:</strong> <code id="hub-ip-display" style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px; font-weight: 700; color: #38bdf8;">Loading IP...</code></span>
+          <button id="copy-hub-ip-btn" class="btn ghost small" style="padding: 4px 10px; font-size: 0.8rem;">Copy Link</button>
         </div>
       </div>
     </main>

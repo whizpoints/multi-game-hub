@@ -5,7 +5,7 @@ const boardData = [
     "reward": 2000
   },
   {
-    "name": "Troy",
+    "name": "Seol",
     "type": "property",
     "color": "Brown",
     "price": 600,
@@ -126,7 +126,7 @@ const boardData = [
     "price": 1400,
     "houseCost": 1000,
     "mortgageValue": 700,
-    "unmortgageCost": 770.0000000000001,
+    "unmortgageCost": 770,
     "rent": {
       "base": 100,
       "house1": 500,
@@ -154,7 +154,7 @@ const boardData = [
     "price": 1400,
     "houseCost": 1000,
     "mortgageValue": 700,
-    "unmortgageCost": 770.0000000000001,
+    "unmortgageCost": 770,
     "rent": {
       "base": 100,
       "house1": 500,
@@ -171,7 +171,7 @@ const boardData = [
     "price": 1600,
     "houseCost": 1000,
     "mortgageValue": 800,
-    "unmortgageCost": 880.0000000000001,
+    "unmortgageCost": 880,
     "rent": {
       "base": 120,
       "house1": 600,
@@ -201,7 +201,7 @@ const boardData = [
     "price": 1800,
     "houseCost": 1000,
     "mortgageValue": 900,
-    "unmortgageCost": 990.0000000000001,
+    "unmortgageCost": 990,
     "rent": {
       "base": 140,
       "house1": 700,
@@ -222,7 +222,7 @@ const boardData = [
     "price": 1800,
     "houseCost": 1000,
     "mortgageValue": 900,
-    "unmortgageCost": 990.0000000000001,
+    "unmortgageCost": 990,
     "rent": {
       "base": 140,
       "house1": 700,
@@ -328,7 +328,7 @@ const boardData = [
     "price": 2600,
     "houseCost": 1500,
     "mortgageValue": 1300,
-    "unmortgageCost": 1430.0000000000002,
+    "unmortgageCost": 1430,
     "rent": {
       "base": 220,
       "house1": 1100,
@@ -345,7 +345,7 @@ const boardData = [
     "price": 2600,
     "houseCost": 1500,
     "mortgageValue": 1300,
-    "unmortgageCost": 1430.0000000000002,
+    "unmortgageCost": 1430,
     "rent": {
       "base": 220,
       "house1": 1100,
@@ -373,7 +373,7 @@ const boardData = [
     "price": 2800,
     "houseCost": 1500,
     "mortgageValue": 1400,
-    "unmortgageCost": 1540.0000000000002,
+    "unmortgageCost": 1540,
     "rent": {
       "base": 240,
       "house1": 1200,
@@ -394,7 +394,7 @@ const boardData = [
     "price": 3000,
     "houseCost": 2000,
     "mortgageValue": 1500,
-    "unmortgageCost": 1650.0000000000002,
+    "unmortgageCost": 1650,
     "rent": {
       "base": 260,
       "house1": 1300,
@@ -411,7 +411,7 @@ const boardData = [
     "price": 3000,
     "houseCost": 2000,
     "mortgageValue": 1500,
-    "unmortgageCost": 1650.0000000000002,
+    "unmortgageCost": 1650,
     "rent": {
       "base": 260,
       "house1": 1300,
@@ -432,7 +432,7 @@ const boardData = [
     "price": 3200,
     "houseCost": 2000,
     "mortgageValue": 1600,
-    "unmortgageCost": 1760.0000000000002,
+    "unmortgageCost": 1760,
     "rent": {
       "base": 280,
       "house1": 1500,
@@ -466,7 +466,7 @@ const boardData = [
     "price": 3500,
     "houseCost": 2000,
     "mortgageValue": 1750,
-    "unmortgageCost": 1925.0000000000002,
+    "unmortgageCost": 1925,
     "rent": {
       "base": 350,
       "house1": 1750,

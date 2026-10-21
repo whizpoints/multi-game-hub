@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Megacity Monopoly</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
     <div class="bg-mesh">
@@ -21,19 +21,45 @@
         <!-- Left Sidebar: Players and Chat -->
         <div class="sidebar left-sidebar">
             <div class="glass-panel" style="flex: 1;">
-                <h3 class="panel-title">Players</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 class="panel-title" style="margin-bottom: 0;">Players</h3>
+                    <button id="logout-btn" class="glass-btn" style="padding: 4px 10px; font-size: 0.72rem; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; cursor: pointer; font-weight: 700;">🚪 Log Out</button>
+                </div>
                 <div id="players-list">
                     <!-- Player cards go here -->
                 </div>
                 <div id="host-controls" class="hidden" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
-                    <button id="add-bot-btn" class="glass-btn" style="padding: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Bot</button>
-                    <button id="add-local-btn" class="glass-btn" style="padding: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Local Player</button>
-                    <button id="start-game-btn" class="glass-btn" style="padding: 12px; font-size: 1rem; margin-top: 5px;">START GAME</button>
+                    <div style="display: flex; gap: 6px;">
+                        <button id="add-bot-btn" class="glass-btn" style="flex: 1; padding: 9px 6px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Bot</button>
+                        <button id="add-2-bots-btn" class="glass-btn" style="flex: 1; padding: 9px 6px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ 2 Bots</button>
+                    </div>
+                    <button id="add-local-btn" class="glass-btn" style="padding: 10px; font-size: 0.85rem; background: rgba(0,0,0,0.05); color: #0f172a; border-color: #cbd5e1; box-shadow: none;">+ Add Local Player</button>
+                    <button id="start-game-btn" class="glass-btn" style="padding: 12px; font-size: 1rem; margin-top: 4px;">START GAME</button>
+                </div>
+                <div id="in-game-controls" class="hidden" style="margin-top: 10px; display: flex; gap: 6px;">
+                    <button id="open-trade-btn" class="glass-btn" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 800; border-radius: 8px;">
+                        <span>🤝</span> <span>Trade</span>
+                    </button>
+                    <button id="quit-lobby-btn" class="glass-btn" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(239,68,68,0.12); color: #dc2626; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <span>🚪</span> <span>Lobby</span>
+                    </button>
+                </div>
+                <div id="lobby-network-card" style="margin-top: 15px; padding: 12px; background: rgba(0,0,0,0.03); border: 1px solid #e2e8f0; border-radius: 12px;">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: #475569; margin-bottom: 6px; text-transform: uppercase;">🌐 Wi-Fi / IP Address Invite:</div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="monopoly-share-url" readonly style="flex: 1; padding: 6px 8px; font-size: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; width: 100%;">
+                        <button id="copy-monopoly-link-btn" class="glass-btn" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px;">Copy</button>
+                    </div>
+                    <div id="monopoly-ip-hint" style="font-size: 0.7rem; color: #64748b; margin-top: 4px;">Join from phone or PC on the same Wi-Fi</div>
                 </div>
             </div>
-            <div class="glass-panel" style="flex: 1;">
-                <h3 class="panel-title">Action Log</h3>
-                <div id="action-log" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
+
+            <div class="glass-panel" style="flex: 1; display: flex; flex-direction: column; min-height: 150px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <h3 class="panel-title" style="margin-bottom: 0; font-size: 0.95rem;">Action Log</h3>
+                    <span id="log-count" style="font-size: 0.65rem; color: #94a3b8; font-weight: 600;">Events</span>
+                </div>
+                <div id="action-log" style="flex: 1; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; font-size: 0.72rem; line-height: 1.35;"></div>
             </div>
         </div>
 
@@ -49,13 +75,15 @@
                 
                 <div style="font-size: 1.2rem; font-weight: bold; color: #ef4444; margin-bottom: 20px;" id="auction-timer">15s REMAINING</div>
                 
-                <div id="auction-controls" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
-                    <button class="glass-btn" style="background: #3b82f6; flex: 1;" onclick="socket.emit('placeBid', 10)">BID +$10</button>
-                    <button class="glass-btn" style="background: #8b5cf6; flex: 1;" onclick="socket.emit('placeBid', 50)">BID +$50</button>
-                    <button class="glass-btn" style="background: #ef4444; flex: 1;" onclick="socket.emit('foldAuction')">FOLD</button>
+                <div id="auction-controls" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
+                    <button class="glass-btn" style="background: #3b82f6; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('placeBid', 10)">+$10</button>
+                    <button class="glass-btn" style="background: #8b5cf6; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('placeBid', 50)">+$50</button>
+                    <button class="glass-btn" style="background: #ec4899; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('placeBid', 100)">+$100</button>
+                    <button class="glass-btn" style="background: #ef4444; flex: 1; min-width: 70px; padding: 10px 8px; font-weight: 800;" onclick="socket.emit('foldAuction')">FOLD</button>
                 </div>
                 
-                <div id="auction-status" style="font-size: 0.85rem; color: #cbd5e1;">Waiting for bids...</div>
+                <div id="auction-status" style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px;">Waiting for bids...</div>
+                <div id="auction-bidders-list" style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; font-size: 0.75rem; color: #94a3b8;"></div>
             </div>
         </div>
 
@@ -71,6 +99,9 @@
                             <div>CHANCE</div>
                         </div>
                         <div class="dice-arena">
+                            <div id="turn-indicator" class="turn-indicator-badge">
+                                WAITING FOR PLAYERS...
+                            </div>
                             <div class="dice-container" style="display: flex; gap: 30px; margin-bottom: 20px;">
                                 <div class="dice-scene">
                                     <div id="die1" class="dice-cube">
@@ -93,7 +124,19 @@
                                     </div>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 10px; width: 100%;"><button id="roll-btn" class="glass-btn glow-primary" style="flex: 1;">ROLL DICE</button><button id="pay-jail-btn" class="glass-btn" style="background: #22c55e; display: none; font-size: 0.9rem;">PAY $50 FINE</button><button id="use-jail-card-btn" class="glass-btn" style="background: #3b82f6; display: none; font-size: 0.9rem;">USE CARD</button></div>
+                            <button id="roll-btn" class="glass-btn glow-primary" style="width: 100%;">ROLL DICE</button>
+                            <div id="jail-actions-container" style="display: none; width: 100%; gap: 8px; margin-top: 6px;">
+                                <button id="pay-jail-btn" class="jail-action-btn jail-btn-pay" style="flex: 1;">💵 Pay $50 Fine</button>
+                                <button id="use-jail-card-btn" class="jail-action-btn jail-btn-card" style="flex: 1; display: none;">🎴 Use Card</button>
+                            </div>
+                            <!-- Pending Purchase Banner in Center Arena -->
+                            <div id="pending-buy-bar" style="display: none; width: 100%; flex-direction: column; gap: 6px; margin-top: 6px; background: rgba(255,255,255,0.95); padding: 8px 10px; border-radius: 8px; border: 1.5px solid #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                                <div id="pending-buy-info" style="font-size: 0.78rem; font-weight: 800; color: #1e293b; text-align: center; line-height: 1.2;">Pending Purchase</div>
+                                <div style="display: flex; gap: 6px; width: 100%;">
+                                    <button id="pending-btn-buy" class="prop-action-btn buy-btn" style="flex: 1; padding: 7px 4px; font-size: 0.72rem; font-weight: 800;">BUY PROPERTY</button>
+                                    <button id="pending-btn-pass" class="prop-action-btn pass-btn" style="flex: 1; padding: 7px 4px; font-size: 0.72rem; font-weight: 800;">PASS TO AUCTION</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="deck chest-deck">
                             <div class="deck-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg></div>
@@ -104,32 +147,70 @@
             </div>
         </div>
         
-        <!-- Right Sidebar: Property Details -->
+        <!-- Right Sidebar: Property Details & Drawn Cards -->
         <div class="sidebar right-sidebar">
             <div class="glass-panel property-card-panel" id="property-card-panel">
-                <div class="placeholder-text">Hover over a property to view details</div>
+                <div class="placeholder-text">Hover or click a property to view details</div>
                 
                 <div id="property-details" class="hidden">
                     <div class="pc-header" id="pc-header">
                         <span id="pc-name">Property Name</span>
+                        <div id="pc-owner-tag" style="font-size: 0.7rem; font-weight: 600; text-transform: none; margin-top: 2px; opacity: 0.9;">Unowned</div>
                     </div>
                     <div class="pc-body">
                         <div class="pc-row"><span class="pc-label">Buy Price:</span> <span class="pc-val" id="pc-price"></span></div>
-                        <div class="pc-row"><span class="pc-label">Base Rent:</span> <span class="pc-val" id="pc-rent"></span></div>
+                        <div class="pc-row" id="pc-row-base"><span class="pc-label">Base Rent:</span> <span class="pc-val" id="pc-rent"></span></div>
                         
                         <div id="pc-houses-container">
                             <hr class="pc-hr">
-                            <div class="pc-row"><span class="pc-label pc-sub">With 1 House:</span> <span class="pc-val" id="pc-h1"></span></div>
-                            <div class="pc-row"><span class="pc-label pc-sub">With 2 Houses:</span> <span class="pc-val" id="pc-h2"></span></div>
-                            <div class="pc-row"><span class="pc-label pc-sub">With 3 Houses:</span> <span class="pc-val" id="pc-h3"></span></div>
-                            <div class="pc-row"><span class="pc-label pc-sub">With 4 Houses:</span> <span class="pc-val" id="pc-h4"></span></div>
-                            <div class="pc-row highlight-hotel"><span class="pc-label">With Hotel:</span> <span class="pc-val" id="pc-hotel"></span></div>
+                            <div class="pc-row" id="pc-row-h1"><span class="pc-label pc-sub">With 1 House:</span> <span class="pc-val" id="pc-h1"></span></div>
+                            <div class="pc-row" id="pc-row-h2"><span class="pc-label pc-sub">With 2 Houses:</span> <span class="pc-val" id="pc-h2"></span></div>
+                            <div class="pc-row" id="pc-row-h3"><span class="pc-label pc-sub">With 3 Houses:</span> <span class="pc-val" id="pc-h3"></span></div>
+                            <div class="pc-row" id="pc-row-h4"><span class="pc-label pc-sub">With 4 Houses:</span> <span class="pc-val" id="pc-h4"></span></div>
+                            <div class="pc-row highlight-hotel" id="pc-row-hotel"><span class="pc-label">With Hotel:</span> <span class="pc-val" id="pc-hotel"></span></div>
                         </div>
 
                         <hr class="pc-hr">
                         <div class="pc-row"><span class="pc-label">House Cost:</span> <span class="pc-val" id="pc-house-cost"></span></div>
                         <div class="pc-row"><span class="pc-label">Mortgage Val:</span> <span class="pc-val" id="pc-mortgage"></span></div>
                         <div class="pc-row"><span class="pc-label">Unmortgage:</span> <span class="pc-val" id="pc-unmortgage"></span></div>
+
+                        <!-- Compact On-Card Action Buttons -->
+                        <div id="pc-actions" style="margin-top: 6px;">
+                            <!-- Buy Group (Active when landing on unowned property - NO POPUPS!) -->
+                            <div id="pc-buy-group" style="display: none; flex-direction: column; gap: 4px;">
+                                <button id="pc-btn-buy" class="prop-action-btn buy-btn">BUY PROPERTY ($<span id="pc-buy-price">0</span>)</button>
+                                <button id="pc-btn-pass" class="prop-action-btn pass-btn">PASS TO AUCTION</button>
+                            </div>
+                            <!-- Owner Group (Active for building/mortgaging) -->
+                            <div id="pc-owner-group" style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <button id="buy-house-btn" class="prop-action-btn upgrade-btn" style="display: none;">UPGRADE</button>
+                                <button id="sell-house-btn" class="prop-action-btn sell-btn" style="display: none;">SELL</button>
+                                <button id="mortgage-btn" class="prop-action-btn mortgage-btn" style="display: none;">MORTGAGE</button>
+                                <button id="unmortgage-btn" class="prop-action-btn unmortgage-btn" style="display: none;">UNMORTGAGE</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drawn Chance / Community Card display (Right Sidebar below Deed Card) -->
+            <div class="glass-panel drawn-card-panel" style="padding: 10px; min-height: 120px;">
+                <div class="drawn-card-placeholder">
+                    <span style="font-size: 1.3rem; opacity: 0.7;">🃏</span>
+                    <div style="font-size: 0.72rem; font-weight: 700; color: #64748b; margin-top: 4px;">Chance & Community Chest cards will appear here</div>
+                </div>
+                <div class="monopoly-drawn-card active-drawn-card hidden">
+                    <div class="drawn-card-top">
+                        <div class="drawn-card-badge">CHANCE</div>
+                        <div class="drawn-card-player">Player</div>
+                    </div>
+                    <div class="drawn-card-content">
+                        <div class="drawn-card-icon">❓</div>
+                        <div class="drawn-card-title">Card Title</div>
+                        <div class="drawn-card-text">Card Text</div>
+                        <div class="drawn-card-subtext">Card Subtext</div>
+                        <div style="font-size: 0.62rem; color: #94a3b8; margin-top: 2px; font-weight: 600;">Active until next card is pulled</div>
                     </div>
                 </div>
             </div>
@@ -137,9 +218,76 @@
 
     </div>
 
+    <!-- TRADE / NEGOTIATION MODAL -->
+    <div id="trade-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 1100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); padding: 15px;">
+        <div class="glass-panel" style="background: #ffffff; border-radius: 18px; width: 680px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                <div>
+                    <h2 style="font-size: 1.3rem; font-weight: 900; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <span>🤝</span> <span>Property Trade & Negotiation</span>
+                    </h2>
+                    <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Negotiate exchanges of properties and cash to complete monopolies!</div>
+                </div>
+                <button id="close-trade-btn" style="background: transparent; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+
+            <!-- Trade partner selector -->
+            <div style="display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 10px 14px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <label style="font-size: 0.85rem; font-weight: 800; color: #334155;">Negotiate With:</label>
+                <select id="trade-partner-select" style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 700; font-size: 0.85rem; background: #ffffff; color: #0f172a;">
+                    <!-- Partner options populated via JS -->
+                </select>
+            </div>
+
+            <!-- Two-column trade table -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <!-- Left: My Offer -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                    <div style="font-size: 0.85rem; font-weight: 900; color: #2563eb; margin-bottom: 8px; text-transform: uppercase;">
+                        Your Offer (You Give)
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px;">Select properties to give:</div>
+                    <div id="trade-my-props" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; margin-bottom: 12px;">
+                        <!-- Checkboxes of player's properties -->
+                    </div>
+                    <div style="margin-top: auto;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #334155;">Cash to Offer ($):</label>
+                        <input type="number" id="trade-my-cash" min="0" value="0" style="width: 100%; box-sizing: border-box; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 4px; font-weight: 800; font-size: 0.9rem; color: #16a34a;">
+                    </div>
+                </div>
+
+                <!-- Right: Their Offer -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column;">
+                    <div style="font-size: 0.85rem; font-weight: 900; color: #059669; margin-bottom: 8px; text-transform: uppercase;">
+                        Their Offer (You Receive)
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px;">Select properties to receive:</div>
+                    <div id="trade-partner-props" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; margin-bottom: 12px;">
+                        <!-- Checkboxes of partner's properties -->
+                    </div>
+                    <div style="margin-top: auto;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: #334155;">Cash to Request ($):</label>
+                        <input type="number" id="trade-partner-cash" min="0" value="0" style="width: 100%; box-sizing: border-box; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 4px; font-weight: 800; font-size: 0.9rem; color: #2563eb;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status / Feedback from Bot/Player -->
+            <div id="trade-status-box" class="hidden" style="padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; text-align: center;"></div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;">
+                <button id="cancel-trade-btn" class="glass-btn" style="padding: 10px 20px; font-size: 0.85rem; background: #94a3b8; color: white;">Cancel</button>
+                <button id="send-trade-btn" class="glass-btn" style="padding: 10px 24px; font-size: 0.9rem; background: #16a34a; color: white; font-weight: 900;">Propose Trade</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="boardData.js?v=2"></script>
-    <script src="game.js?v=2"></script>
+    <script src="/audio.js?v=11"></script>
+    <script src="boardData.js?v=14"></script>
+    <script src="game.js?v=14"></script>
 </body>
 </html>

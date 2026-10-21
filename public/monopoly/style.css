@@ -29,10 +29,13 @@ body {
 
 /* Sidebars */
 .sidebar {
-    width: 260px; padding: 15px;
-    display: flex; flex-direction: column; gap: 15px;
+    width: 270px; padding: 12px;
+    display: flex; flex-direction: column; gap: 10px;
     flex-shrink: 0; z-index: 10;
+    max-height: 100vh; overflow-y: auto;
 }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
 .glass-panel {
     background: rgba(255, 255, 255, 0.7);
@@ -84,6 +87,37 @@ body {
     background: #f8fafc;
     z-index: 10;
     box-shadow: inset 0 0 0 2px #3b82f6;
+}
+
+/* Colored Property Tiles - Full Rectangle Styling */
+.tile.property-tile {
+    padding: 4px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+}
+.tile.property-tile:hover {
+    box-shadow: inset 0 0 0 2.5px rgba(255, 255, 255, 0.95), 0 4px 12px rgba(0,0,0,0.2) !important;
+    z-index: 10;
+}
+.tile.property-tile .name {
+    font-size: 0.68rem;
+    font-weight: 900;
+    line-height: 1.15;
+    text-align: center;
+    padding: 0 3px;
+    margin: 0;
+    pointer-events: none;
+}
+.tile.property-tile .price {
+    font-size: 0.62rem;
+    font-weight: 800;
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+    pointer-events: none;
 }
 
 .tile .name { 
@@ -159,6 +193,26 @@ body {
     pointer-events: auto;
     display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 5;
 }
+
+.turn-indicator-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 7px 22px;
+    border-radius: 9999px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    max-width: 95%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.3s ease;
+}
 .dice-container { display: flex; gap: 15px; }
 .dice {
     font-size: 3.5rem; background: #f8fafc;
@@ -175,22 +229,303 @@ body {
 }
 .glass-btn:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 12px 20px rgba(37, 99, 235, 0.4); }
 
-/* Right Sidebar Property Details */
-.property-card-panel { padding: 0; overflow: hidden; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-.placeholder-text { text-align: center; color: #94a3b8; font-weight: bold; font-style: italic; padding: 40px 20px; }
-.pc-header {
-    font-size: 1.1rem; font-weight: 900; text-align: center;
-    padding: 20px 15px; text-transform: uppercase; letter-spacing: 1px;
-    color: white; border-bottom: 2px solid rgba(0,0,0,0.1);
+/* Right Sidebar Property Details - Compact Deed Card */
+.property-card-panel {
+    padding: 0;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    margin-bottom: 8px;
 }
-.pc-body { padding: 15px 20px; }
-.pc-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 10px; }
+.placeholder-text {
+    text-align: center;
+    color: #94a3b8;
+    font-weight: 700;
+    font-style: italic;
+    padding: 14px 10px;
+    font-size: 0.75rem;
+}
+.pc-header {
+    font-size: 0.85rem;
+    font-weight: 900;
+    text-align: center;
+    padding: 6px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: white;
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+.pc-body {
+    padding: 6px 10px;
+}
+.pc-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    margin-bottom: 2px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+.pc-row.active-rent-row {
+    background: rgba(34, 197, 94, 0.15);
+    border-left: 3px solid #16a34a;
+    font-weight: 800;
+}
 .pc-label { color: #64748b; font-weight: 700; }
-.pc-sub { padding-left: 15px; font-weight: 600; }
-.pc-val { font-weight: 900; color: #0f172a; }
-.pc-hr { border: none; border-top: 2px solid #f1f5f9; margin: 12px 0; }
-.highlight-hotel { color: #8b4513; font-weight: 900; }
+.pc-sub { padding-left: 8px; font-weight: 600; }
+.pc-val { font-weight: 800; color: #0f172a; }
+.pc-hr { border: none; border-top: 1px solid #f1f5f9; margin: 3px 0; }
+.highlight-hotel { color: #dc2626; font-weight: 900; }
 .hidden { display: none !important; }
+
+/* Compact Property Deed Action Buttons */
+.prop-action-btn {
+    border: none;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 0.7rem;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+.prop-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+.prop-action-btn.buy-btn {
+    background: #16a34a;
+    color: #ffffff;
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+.prop-action-btn.buy-btn:hover {
+    background: #15803d;
+}
+.prop-action-btn.pass-btn {
+    background: #64748b;
+    color: #ffffff;
+    width: 100%;
+    padding: 5px 10px;
+    font-size: 0.7rem;
+}
+.prop-action-btn.pass-btn:hover {
+    background: #475569;
+}
+.prop-action-btn.upgrade-btn {
+    background: #2563eb;
+    color: white;
+    flex: 1;
+}
+.prop-action-btn.upgrade-btn:hover {
+    background: #1d4ed8;
+}
+.prop-action-btn.sell-btn {
+    background: #d97706;
+    color: white;
+    flex: 1;
+}
+.prop-action-btn.sell-btn:hover {
+    background: #b45309;
+}
+.prop-action-btn.mortgage-btn {
+    background: #dc2626;
+    color: white;
+    flex: 1;
+}
+.prop-action-btn.mortgage-btn:hover {
+    background: #b91c1c;
+}
+.prop-action-btn.unmortgage-btn {
+    background: #059669;
+    color: white;
+    flex: 1;
+}
+.prop-action-btn.unmortgage-btn:hover {
+    background: #047857;
+}
+
+/* Drawn Card Panel */
+.drawn-card-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.drawn-card-placeholder {
+    text-align: center;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.monopoly-drawn-card {
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+    animation: cardPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes cardPopIn {
+    0% { transform: scale(0.92) translateY(8px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.monopoly-drawn-card.card-chance {
+    border: 2px solid #ea580c;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+    box-shadow: 0 4px 16px rgba(234, 88, 12, 0.2);
+}
+.monopoly-drawn-card.card-chest {
+    border: 2px solid #2563eb;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.2);
+}
+.drawn-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding-bottom: 4px;
+}
+.drawn-card-badge {
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 5px;
+    color: white;
+}
+.card-chance .drawn-card-badge { background: #ea580c; }
+.card-chest .drawn-card-badge { background: #2563eb; }
+.drawn-card-player {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+}
+.drawn-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 3px;
+    padding: 2px 0;
+}
+.drawn-card-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+.drawn-card-title {
+    font-size: 0.84rem;
+    font-weight: 900;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.drawn-card-text {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 1px;
+}
+.drawn-card-subtext {
+    font-size: 0.68rem;
+    color: #64748b;
+    margin-top: 3px;
+    font-style: italic;
+    background: rgba(0,0,0,0.03);
+    padding: 3px 6px;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Action Log & Trade items */
+#action-log::-webkit-scrollbar { width: 4px; }
+#action-log::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.log-item { padding: 3px 6px; border-bottom: 1px solid #f1f5f9; color: #334155; word-break: break-word; }
+.trade-prop-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 700; color: #0f172a; cursor: pointer;
+    transition: all 0.15s ease;
+}
+.trade-prop-item:hover { border-color: #94a3b8; background: #f8fafc; }
+.trade-prop-item input[type="checkbox"] { cursor: pointer; }
+
+/* Jail Action Buttons */
+.jail-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+.jail-btn-pay {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+}
+.jail-btn-pay.need-cash {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.jail-btn-pay:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+.jail-btn-card {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #ffffff;
+}
+.jail-btn-card:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+.jail-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Houses and Owner Badges on Tiles */
+.house-indicator {
+    z-index: 25;
+    pointer-events: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    white-space: nowrap;
+}
+.owner-name-tag {
+    z-index: 25;
+    pointer-events: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+}
 
 /* Fullscreen Button */
 .glass-icon-btn {
@@ -259,17 +594,99 @@ body {
 
 @keyframes roll-animation { 0% { transform: rotateX(0deg) rotateY(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg); } } 100% { transform: rotateX(360deg) rotateY(360deg); } }
 
-/* Animated Token */
+/* Animated Token - Always rendered on top of board tiles & overlays */
 .player-token-anim {
     position: absolute;
     width: 30px; height: 30px;
     font-size: 28px;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-    z-index: 50;
+    z-index: 100 !important;
     filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.5));
+    pointer-events: none;
 }
 
 .player-card { background: rgba(255, 255, 255, 0.8); padding: 10px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.2s; overflow: hidden; }
 .player-card svg { width: 30px; height: 30px; }
+
+/* Mortgaged Overlay - sits over tile background, strictly below player tokens (z:100) and badges (z:30) */
+.owner-strip {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(2px);
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    z-index: 5 !important;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    pointer-events: none;
+}
+
+/* Pulsing outline for property currently awaiting purchase */
+@keyframes pendingPulse {
+    0% {
+        box-shadow: inset 0 0 0 3px #16a34a, 0 0 12px rgba(22, 163, 74, 0.6);
+    }
+    50% {
+        box-shadow: inset 0 0 0 4px #eab308, 0 0 18px rgba(234, 179, 8, 0.8);
+    }
+    100% {
+        box-shadow: inset 0 0 0 3px #16a34a, 0 0 12px rgba(22, 163, 74, 0.6);
+    }
+}
+
+.tile.pending-purchase-tile {
+    animation: pendingPulse 1.4s infinite alternate;
+    z-index: 20 !important;
+}
+
+/* Floating Cash Animations */
+@keyframes floatCashUp {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 15px) scale(0.65);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -15px) scale(1.15);
+    }
+    75% {
+        opacity: 1;
+        transform: translate(-50%, -60px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -90px) scale(0.9);
+    }
+}
+
+.floating-cash-bubble {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    font-weight: 900;
+    font-size: 1.05rem;
+    color: #10b981;
+    background: rgba(15, 23, 42, 0.94);
+    border: 1.5px solid #10b981;
+    box-shadow: 0 6px 22px rgba(16, 185, 129, 0.45);
+    padding: 6px 14px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: floatCashUp 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.floating-bill {
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.35rem;
+    z-index: 9998;
+    animation: floatCashUp 2s ease-out forwards;
+}
 

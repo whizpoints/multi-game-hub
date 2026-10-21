@@ -1,7 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
   loadLeaderboard();
   loadMatches();
+  loadNetworkInfo();
 });
+
+async function loadNetworkInfo() {
+  const display = document.getElementById('hub-ip-display');
+  const copyBtn = document.getElementById('copy-hub-ip-btn');
+  if (!display) return;
+
+  let hubUrl = window.location.origin;
+  try {
+    const res = await fetch('/api/server-info');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.primaryIp) {
+        hubUrl = `http://${data.primaryIp}:${data.port || 3000}`;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not fetch server-info', e);
+  }
+
+  display.textContent = hubUrl;
+
+  if (copyBtn) {
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(hubUrl).then(() => {
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = orig; }, 2000);
+      }).catch(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy Link'; }, 2000);
+      });
+    };
+  }
+}
 
 async function loadLeaderboard() {
   const tbody = document.getElementById('leaderboard-body');
@@ -57,13 +92,22 @@ async function loadMatches() {
     data.forEach((match) => {
       const d = new Date(match.date);
       const dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      const playersNames = match.players.map(p => p.name).join(', ');
+      const streakBadge = (match.streak && match.streak > 1) 
+        ? ` <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; border: 1px solid rgba(245, 158, 11, 0.4); margin-left: 6px;">🔥 ${match.streak} Streak</span>` 
+        : '';
       
+      const playersChips = (match.players && match.players.length > 0)
+        ? match.players.map(p => {
+            const isWinner = (p.name && match.winner_name && p.name.toLowerCase() === match.winner_name.toLowerCase());
+            return `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: ${isWinner ? 'rgba(234, 179, 8, 0.18)' : 'rgba(255,255,255,0.06)'}; color: ${isWinner ? '#eab308' : '#cbd5e1'}; border: 1px solid ${isWinner ? 'rgba(234, 179, 8, 0.4)' : 'rgba(255,255,255,0.1)'}; margin: 2px 3px;">${isWinner ? '👑 ' : ''}${p.name || 'Player'}</span>`;
+          }).join('')
+        : '<span class="muted">-</span>';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${dateStr}</td>
-        <td style="font-weight: 600; color: #eab308;">🏆 ${match.winner_name || 'Draw'}</td>
-        <td class="muted">${playersNames}</td>
+        <td style="font-weight: 700; color: #eab308;">🏆 ${match.winner_name || 'Draw'}${streakBadge}</td>
+        <td><div style="display: flex; flex-wrap: wrap; gap: 2px; align-items: center;">${playersChips}</div></td>
       `;
       tbody.appendChild(tr);
     });

@@ -1,6 +1,6 @@
 Box No.,Type,Name,Color Group,Buy Price,House/Hotel Cost,Base Rent,Rent (1 House),Rent (2 Houses),Rent (3 Houses),Rent (4 Houses),Rent (Hotel),Mortgage Value,Unmortgage Cost
 0,GO,GO,,,,,,,,,,,
-1,Property,Lima,Brown,600,500,20,100,300,900,1600,2500,300,330
+1,Property,Seoul,Brown,600,500,20,100,300,900,1600,2500,300,330
 2,Chest,Community Chest,,,,,,,,,,,
 3,Property,Nairobi,Brown,600,500,40,200,600,1800,3200,4500,300,330
 4,Tax,Income Tax,,2000,,,,,,,,,

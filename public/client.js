@@ -14,14 +14,48 @@ let myDbId  = null;
 let boardConfig      = null;   
 let currentGameState  = null;   
 
-// Build the shareable URL: use the tunnel domain if on localhost so other PCs can connect
-function getShareUrl() {
-  const loc = window.location;
-  if (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') {
-    return `https://api.whizpoint.app${loc.pathname}`;
+let cachedShareUrl = window.location.href;
+
+async function initServerNetworkInfo() {
+  try {
+    const res = await fetch('/api/server-info');
+    if (res.ok) {
+      const info = await res.json();
+      if (info.primaryIp && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        cachedShareUrl = `http://${info.primaryIp}:${info.port || 3000}/play`;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not fetch server-info', e);
   }
-  return loc.href;
+  const shareInput = $('share-url');
+  if (shareInput) shareInput.value = cachedShareUrl;
 }
+
+function getShareUrl() {
+  return cachedShareUrl || window.location.href;
+}
+
+initServerNetworkInfo();
+
+document.addEventListener('DOMContentLoaded', () => {
+  initServerNetworkInfo();
+  const copyBtn = $('copy-link-btn');
+  const shareInput = $('share-url');
+  if (copyBtn && shareInput) {
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(shareInput.value).then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+      }).catch(() => {
+        shareInput.select();
+        document.execCommand('copy');
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+      });
+    });
+  }
+});
 
 const socket = io();
 
@@ -822,12 +856,31 @@ async function animatePlayerDice(playerId, roll) {
 async function animateTokenMove(color, tokenIndex, fromStep, toStep) {
   const el = getTokenEl(color, tokenIndex);
   if (!el) return;
-  el.style.transition = 'transform 0.15s ease';
+
   for (let s = fromStep + 1; s <= toStep; s++) {
     const p = stepToPixel(color, s, tokenIndex);
-    el.setAttribute('transform', `translate(${p.x}, ${p.y})`);
-    await sleep(180);
+
+    // Upward hop arc with stretch
+    el.style.transition = 'transform 0.09s ease-out';
+    el.setAttribute('transform', `translate(${p.x}, ${p.y - 18}) scale(0.92, 1.15)`);
+    await sleep(90);
+
+    // Touchdown squash impact
+    el.style.transition = 'transform 0.08s ease-in';
+    el.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(1.15, 0.88)`);
+    if (window.SoundFX && window.SoundFX.hop) {
+      window.SoundFX.hop();
+    } else if (window.SoundFX && window.SoundFX.moveToken) {
+      window.SoundFX.moveToken();
+    }
+    await sleep(85);
+
+    // Return to resting neutral scale
+    el.style.transition = 'transform 0.04s ease-out';
+    el.setAttribute('transform', `translate(${p.x}, ${p.y}) scale(1, 1)`);
+    await sleep(25);
   }
+
   el.style.transition = '';
 }
 
@@ -853,7 +906,7 @@ function updateTurnUI(turnInfo) {
   });
 
   if (myColors.includes(turnColor)) {
-    text.textContent = `🎲 ${turnName}'s Turn! (You)`;
+    text.textContent = `🎲 ${turnName}'s Turn`;
     // Enable this specific player's roll button
     const player = currentGameState.players.find(p => p.color === turnColor);
     if (player) {
@@ -918,13 +971,16 @@ socket.on('tokenMoved', async ({ color, tokenIndex, fromStep, toStep, isCapture,
   if (isCapture && capturedInfo) {
     const cel = getTokenEl(capturedInfo.color, capturedInfo.tokenIndex);
     if (cel) {
+      cel.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
       const cp = stepToPixel(capturedInfo.color, 0, capturedInfo.tokenIndex);
       cel.setAttribute('transform', `translate(${cp.x}, ${cp.y})`);
+      setTimeout(() => { if (cel) cel.style.transition = ''; }, 500);
     }
     toast(`${color} captured ${capturedInfo.color}'s token!`, 'success');
   }
 
   if (reachedHome) {
+    if (window.triggerConfetti) window.triggerConfetti(2200);
     toast(`${color} got a token HOME! 🏠`, 'success');
   }
 
@@ -1000,6 +1056,7 @@ socket.on('playerFinished', ({ color, name, rank, playerId }) => {
 });
 
 socket.on('gameOver', ({ rankings }) => {
+  if (window.triggerConfetti) window.triggerConfetti(4500);
   Swal.close();
   if (currentGameState) currentGameState.rankings = rankings;
   updateStatusCards(currentGameState.players, currentGameState.tokens, rankings);
