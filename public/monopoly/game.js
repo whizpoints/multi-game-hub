@@ -664,7 +664,6 @@ function showPropertyDetails(tile) {
     if (unmortgageBtn) unmortgageBtn.style.display = 'none';
     if (buyGroup) buyGroup.style.display = 'none';
     
-<<<<<<< Updated upstream
     document.querySelectorAll('.pc-row').forEach(r => r.classList.remove('active-rent-row'));
     
     const state = window.currentGameStateObj;
@@ -684,32 +683,6 @@ function showPropertyDetails(tile) {
         } else {
             ownerTag.textContent = 'Unowned (Bank)';
             ownerTag.style.color = '#64748b';
-=======
-    if (tile.rent) {
-        document.getElementById('pc-rent').textContent = tile.rent.base ? '$' + tile.rent.base : (tile.rent.base === 0 ? '$0' : tile.rent.base);
-        
-        const state = window.currentGameStateObj;
-        if (state && state.properties[idx]) {
-            const prop = state.properties[idx];
-            const pAuth = state.players[prop.owner];
-            const isOwner = (prop.owner === myUuid || (pAuth && pAuth.isLocal && pAuth.hostId === myUuid));
-            
-            if (isOwner) {
-                if (prop.mortgaged) {
-                    unmortgageBtn.style.display = 'block';
-                    unmortgageBtn.textContent = 'UNMORTGAGE ($' + Math.round(tile.unmortgageCost) + ')';
-                } else {
-                    if (tile.type === 'property' && prop.houses < 5) {
-                        buyHouseBtn.style.display = 'block';
-                        buyHouseBtn.textContent = 'UPGRADE ($' + (tile.houseCost || 50) + ')';
-                    }
-                    if (!prop.houses || prop.houses === 0) {
-                        mortgageBtn.style.display = 'block';
-                        mortgageBtn.textContent = 'MORTGAGE (+$' + tile.mortgageValue + ')';
-                    }
-                }
-            }
->>>>>>> Stashed changes
         }
     }
 
@@ -1646,7 +1619,6 @@ function updateControls(state) {
     }
 }
 
-<<<<<<< Updated upstream
 function checkPendingActions(state) {
     if (!state || !state.players) return;
     const currentTurnUuid = state.turnOrder[state.currentTurnIndex];
@@ -1662,26 +1634,6 @@ function checkPendingActions(state) {
 
     if (activePlayer && activePlayer.pendingAction && activePlayer.pendingAction.type === 'buy') {
         const pAction = activePlayer.pendingAction;
-=======
-socket.on('gameState', async (state) => {
-    if (isAnimatingHops) {
-        pendingGameState = state;
-        return;
-    }
-    currentGameState = state;
-    window.currentGameStateObj = state; renderPlayersList(state);
-    
-    await animateHopsForState(state);
-    
-    renderBoardTokens(state);
-    renderPropertyOwnership(state);
-    updateControls(state);
-    if (window.currentViewedTileIndex !== undefined) { showPropertyDetails(boardData[window.currentViewedTileIndex]); }
-    
-    const me = state.players[myUuid];
-    if (me && me.pendingAction && me.pendingAction.type === 'buy') {
-        const pAction = me.pendingAction;
->>>>>>> Stashed changes
         const tData = boardData[pAction.tileIndex];
         const tileEl = document.getElementById('tile-' + pAction.tileIndex);
         if (tileEl) tileEl.classList.add('pending-purchase-tile');
