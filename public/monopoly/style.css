@@ -648,6 +648,205 @@ body {
     height: 24px !important;
 }
 
+/* ==========================================================================
+   AUCTION OVERLAY & MULTI-BIDDER STATIONS (UP TO 8 CARDS + LARGER DEED CARD)
+   ========================================================================== */
+.auction-stage-layout {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+}
+
+@media (max-width: 980px) {
+    .auction-stage-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Dedicated Larger Property Deed Card */
+.auction-deed-card {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    background: #ffffff;
+    border: 2px solid #0f172a;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08), 0 0 1px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.auc-deed-header {
+    padding: 12px 14px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+    text-align: center;
+}
+
+.auc-deed-sub {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.auc-deed-title {
+    font-size: 1.25rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    margin: 2px 0;
+}
+
+.auc-deed-group {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.auc-deed-body {
+    padding: 10px 14px;
+    background: #ffffff;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    gap: 2px;
+}
+
+.auc-deed-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    padding: 2px 4px;
+    color: #475569;
+    font-weight: 700;
+}
+
+.auc-deed-row span:last-child {
+    color: #0f172a;
+    font-weight: 900;
+}
+
+.auc-deed-footer {
+    padding: 7px 12px;
+    background: #f8fafc;
+    border-top: 1.5px solid #e2e8f0;
+    text-align: center;
+}
+
+/* Multi-Bidder Auction Players Flex Container */
+.auction-players-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Player Bidding Card - Identical, Large, Balanced Size */
+.auction-card {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+    border-radius: 18px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    box-sizing: border-box;
+    min-height: 165px;
+    flex-shrink: 0;
+}
+
+.auction-card.is-active {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+
+.auction-card.is-leader {
+    background: linear-gradient(180deg, #fffdf5, #fffbeb) !important;
+    border: 2.5px solid #f59e0b !important;
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.32) !important;
+    transform: translateY(-2px);
+}
+
+.auction-card.is-folded {
+    opacity: 0.45;
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+.auction-card .token-icon {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+    background: #f8fafc !important;
+    font-size: 1.2rem !important;
+}
+
+.auc-bid-btn {
+    padding: 11px 0 !important;
+    min-height: 46px !important;
+    font-size: 1.05rem !important;
+    font-weight: 900 !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.18s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.auc-bid-btn:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
+    filter: brightness(1.08) !important;
+}
+
+.auc-fold-btn {
+    width: 100% !important;
+    padding: 9px 0 !important;
+    min-height: 36px !important;
+    font-size: 0.85rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+    background: rgba(239, 68, 68, 0.08) !important;
+    color: #dc2626 !important;
+    border: 1.5px solid rgba(239, 68, 68, 0.35) !important;
+    border-radius: 9px !important;
+    cursor: pointer !important;
+    transition: all 0.18s ease !important;
+}
+
+.auc-fold-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.18) !important;
+    transform: translateY(-1px) !important;
+}
+
 /* Mortgaged Overlay - sits over tile background, strictly below player tokens (z:100) and badges (z:30) */
 .owner-strip {
     position: absolute;
@@ -727,5 +926,54 @@ body {
     font-size: 1.35rem;
     z-index: 9998;
     animation: floatCashUp 2s ease-out forwards;
+}
+
+/* ==========================================================================
+   BANK PANEL & DIRECTIONAL CASH FLIGHT ANIMATIONS
+   ========================================================================== */
+.bank-panel {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 13px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.bank-panel.bank-pulse {
+    animation: bankPulseAnim 0.85s ease-out;
+}
+
+@keyframes bankPulseAnim {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 4px 14px rgba(15, 23, 42, 0.05);
+        border-color: #10b981;
+    }
+    45% {
+        box-shadow: 0 0 22px 4px rgba(16, 185, 129, 0.4), 0 4px 14px rgba(15, 23, 42, 0.05);
+        border-color: #059669;
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+        border-color: #e2e8f0;
+        transform: scale(1);
+    }
+}
+
+.flying-cash-particle {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    font-size: 1.5rem;
+    will-change: transform, opacity;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    transition: transform 0.85s cubic-bezier(0.2, 0.85, 0.25, 1), opacity 0.85s ease;
 }
 

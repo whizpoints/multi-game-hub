@@ -796,7 +796,7 @@ function showPropertyDetails(tile) {
 
         if (state && prop) {
             const pAuth = state.players[prop.owner];
-            const isOwner = (prop.owner === myUuid || (pAuth && pAuth.isLocal && pAuth.hostId === myUuid));
+            const isOwner = (prop.owner === myUuid || (pAuth && pAuth.isLocal && (pAuth.hostId === myUuid || !pAuth.hostId || state.host === myUuid)));
             
             if (isOwner) {
                 if (prop.mortgaged) {
@@ -1145,6 +1145,98 @@ function renderPropertyOwnership(state) {
 }
 
 
+function renderAuctionDeedCard(tile) {
+    const cardEl = document.getElementById('auction-deed-card');
+    if (!cardEl || !tile) return;
+    
+    const hex = neonColors[tile.color] || (tile.type === 'railroad' ? '#475569' : (tile.type === 'utility' ? '#d97706' : '#2563eb'));
+    const isDarkText = (tile.color === 'Yellow' || tile.color === 'LightBlue');
+    const headerTextColor = isDarkText ? '#0f172a' : '#ffffff';
+
+    let bodyHtml = '';
+
+    if (tile.type === 'property') {
+        const baseRent = tile.rent ? (tile.rent.base || 0) : 0;
+        const h1 = tile.rent ? (tile.rent.house1 || 0) : 0;
+        const h2 = tile.rent ? (tile.rent.house2 || 0) : 0;
+        const h3 = tile.rent ? (tile.rent.house3 || 0) : 0;
+        const h4 = tile.rent ? (tile.rent.house4 || 0) : 0;
+        const hotel = tile.rent ? (tile.rent.hotel || 0) : 0;
+
+        bodyHtml = `
+            <div class="auc-deed-row" style="font-size: 0.92rem; font-weight: 900; padding: 4px 6px; border-bottom: 1.5px solid #e2e8f0; margin-bottom: 4px;">
+                <span>Base Rent:</span>
+                <span style="color: #0f172a; font-size: 1.05rem;">$${baseRent}</span>
+            </div>
+            <div class="auc-deed-row"><span>With 1 House:</span> <span>$${h1}</span></div>
+            <div class="auc-deed-row"><span>With 2 Houses:</span> <span>$${h2}</span></div>
+            <div class="auc-deed-row"><span>With 3 Houses:</span> <span>$${h3}</span></div>
+            <div class="auc-deed-row"><span>With 4 Houses:</span> <span>$${h4}</span></div>
+            <div class="auc-deed-row" style="color: #dc2626; font-weight: 900; background: #fee2e2; border-radius: 6px; padding: 2px 6px; margin-top: 2px;">
+                <span>With HOTEL:</span>
+                <span>$${hotel}</span>
+            </div>
+            <hr style="border: none; border-top: 1.5px solid #e2e8f0; margin: 6px 0;">
+            <div class="auc-deed-row" style="font-size: 0.78rem; color: #64748b;">
+                <span>House Cost:</span>
+                <span style="font-weight: 800; color: #0f172a;">$${tile.houseCost || 0}</span>
+            </div>
+            <div class="auc-deed-row" style="font-size: 0.78rem; color: #64748b;">
+                <span>Mortgage Value:</span>
+                <span style="font-weight: 800; color: #0f172a;">$${tile.mortgageValue || 0}</span>
+            </div>
+        `;
+    } else if (tile.type === 'railroad') {
+        const r = tile.rent || {};
+        bodyHtml = `
+            <div class="auc-deed-row" style="font-size: 0.92rem; font-weight: 900; padding: 4px 6px; border-bottom: 1.5px solid #e2e8f0; margin-bottom: 4px;">
+                <span>1 Airport:</span>
+                <span style="color: #0f172a; font-size: 1.05rem;">$${r.base || 250}</span>
+            </div>
+            <div class="auc-deed-row"><span>2 Airports:</span> <span>$${r.two || 500}</span></div>
+            <div class="auc-deed-row"><span>3 Airports:</span> <span>$${r.three || 1000}</span></div>
+            <div class="auc-deed-row"><span>4 Airports:</span> <span>$${r.four || 2000}</span></div>
+            <hr style="border: none; border-top: 1.5px solid #e2e8f0; margin: 6px 0;">
+            <div class="auc-deed-row" style="font-size: 0.78rem; color: #64748b;">
+                <span>Mortgage Value:</span>
+                <span style="font-weight: 800; color: #0f172a;">$${tile.mortgageValue || 0}</span>
+            </div>
+        `;
+    } else if (tile.type === 'utility') {
+        bodyHtml = `
+            <div class="auc-deed-row" style="font-size: 0.85rem; font-weight: 800; padding: 4px 6px; border-bottom: 1.5px solid #e2e8f0; margin-bottom: 4px;">
+                <span>1 Utility Owned:</span>
+                <span style="color: #0f172a;">40x Dice</span>
+            </div>
+            <div class="auc-deed-row" style="font-size: 0.85rem; font-weight: 800; padding: 4px 6px;">
+                <span>2 Utilities Owned:</span>
+                <span style="color: #0f172a;">100x Dice</span>
+            </div>
+            <hr style="border: none; border-top: 1.5px solid #e2e8f0; margin: 6px 0;">
+            <div class="auc-deed-row" style="font-size: 0.78rem; color: #64748b;">
+                <span>Mortgage Value:</span>
+                <span style="font-weight: 800; color: #0f172a;">$${tile.mortgageValue || 0}</span>
+            </div>
+        `;
+    }
+
+    cardEl.innerHTML = `
+        <div class="auc-deed-header" style="background: ${hex}; color: ${headerTextColor};">
+            <div class="auc-deed-sub" style="color: ${isDarkText ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.9)'};">★ TITLE DEED ★</div>
+            <div class="auc-deed-title" style="color: ${headerTextColor};">${tile.name}</div>
+            <div class="auc-deed-group" style="color: ${isDarkText ? 'rgba(15,23,42,0.75)' : 'rgba(255,255,255,0.85)'};">${tile.color ? tile.color.toUpperCase() + ' DISTRICT' : 'TACTICAL ASSET'}</div>
+        </div>
+        <div class="auc-deed-body">
+            ${bodyHtml}
+        </div>
+        <div class="auc-deed-footer">
+            <div style="font-size: 0.72rem; font-weight: 900; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">
+                🏛️ Original Bank Price: $${tile.price || 0}
+            </div>
+        </div>
+    `;
+}
+
 function updateControls(state) {
     const aucOverlay = document.getElementById('auction-overlay');
     if (state.status === 'AUCTION' && state.auction) {
@@ -1166,26 +1258,28 @@ function updateControls(state) {
         const leader = state.players[state.auction.highestBidder];
         const leaderEl = document.getElementById('auction-leader');
         if (leader) {
-            leaderEl.innerHTML = `<span class="token-icon" style="width: 20px; height: 20px; min-width: 20px; max-width: 20px; display: inline-flex; align-items: center; justify-content: center; color: ${leader.color}; flex-shrink: 0; overflow: hidden;">${leader.symbol || '🎩'}</span> <span style="color: ${leader.color}; font-weight: 900;">${leader.username}</span>`;
+            leaderEl.innerHTML = `<span class="token-icon" style="width: 22px; height: 22px; min-width: 22px; max-width: 22px; display: inline-flex; align-items: center; justify-content: center; color: ${leader.color}; flex-shrink: 0; overflow: hidden;">${leader.symbol || '🎩'}</span> <span style="color: ${leader.color}; font-weight: 900;">${leader.username}</span>`;
         } else {
             leaderEl.textContent = 'NONE';
         }
         document.getElementById('auction-timer').textContent = state.auction.timer + 's REMAINING';
+
+        // Render the larger Title Deed Card
+        renderAuctionDeedCard(tData);
         
-        // Multi-Bidder Stations (Every human player gets their own card!)
+        // Multi-Bidder Stations (Every player gets an identical, perfectly sized large card)
         const gridEl = document.getElementById('auction-players-grid');
         if (gridEl) {
             gridEl.innerHTML = '';
+            gridEl.className = 'auction-players-container';
+            gridEl.style.display = 'flex';
+            gridEl.style.flexWrap = 'wrap';
+            gridEl.style.gap = '16px';
+            gridEl.style.justifyContent = 'center';
+            gridEl.style.alignItems = 'center';
             
             // Get all human players in this match
             const humanPlayers = Object.values(state.players).filter(p => !p.isBot && p.online);
-            
-            if (humanPlayers.length <= 4) {
-                gridEl.style.gridTemplateColumns = `repeat(${Math.max(2, humanPlayers.length)}, 1fr)`;
-            } else {
-                gridEl.style.gridTemplateColumns = 'repeat(4, 1fr)';
-            }
-            gridEl.style.gap = '14px';
             
             humanPlayers.forEach(p => {
                 const isActive = (state.auction.activeBidders || []).includes(p.uuid);
@@ -1195,52 +1289,40 @@ function updateControls(state) {
                 const next100 = state.auction.currentBid + 100;
 
                 const card = document.createElement('div');
-                card.className = 'auction-card';
-                card.style.cssText = `
-                    background: ${isLeader ? '#fffbeb' : (isActive ? '#ffffff' : '#f8fafc')};
-                    border: 2px solid ${isLeader ? '#f59e0b' : (isActive ? '#0284c7' : '#cbd5e1')};
-                    border-radius: 16px;
-                    padding: 16px 18px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                    box-shadow: ${isLeader ? '0 6px 20px rgba(245, 158, 11, 0.28)' : '0 4px 14px rgba(15, 23, 42, 0.06)'};
-                    opacity: ${isActive ? '1' : '0.45'};
-                    transition: all 0.2s;
-                    text-align: left;
-                    min-height: 145px;
-                `;
+                card.className = 'auction-card' + (isLeader ? ' is-leader' : (isActive ? ' is-active' : ' is-folded'));
 
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 8px; text-align: left; overflow: hidden; flex: 1;">
-                            <span class="token-icon" style="width: 26px; height: 26px; min-width: 26px; max-width: 26px; display: inline-flex; align-items: center; justify-content: center; color: ${p.color}; flex-shrink: 0; overflow: hidden;">${p.symbol || '🎩'}</span>
-                            <div style="overflow: hidden; flex: 1;">
-                                <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="${p.username}">${p.username}</div>
-                                <div style="font-size: 0.95rem; color: #16a34a; font-weight: 900;">$${Math.round(p.cash).toLocaleString()}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1;">
+                            <span class="token-icon" style="border: 2px solid ${p.color}; color: ${p.color};">
+                                ${p.symbol || '🎩'}
+                            </span>
+                            <div style="overflow: hidden; flex: 1; text-align: left;">
+                                <div style="font-weight: 900; font-size: 1.15rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${p.username}">${p.username}</div>
+                                <div style="font-size: 1.1rem; color: #16a34a; font-weight: 900; letter-spacing: 0.3px;">$${Math.round(p.cash).toLocaleString()}</div>
                             </div>
                         </div>
-                        <span style="font-size: 0.7rem; font-weight: 900; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; background: ${isLeader ? '#f59e0b' : (isActive ? '#dcfce7' : '#fee2e2')}; color: ${isLeader ? '#ffffff' : (isActive ? '#15803d' : '#b91c1c')}; border: 1px solid ${isLeader ? '#d97706' : (isActive ? '#86efac' : '#fca5a5')}; flex-shrink: 0;">
+                        <span style="font-size: 0.72rem; font-weight: 900; padding: 4px 10px; border-radius: 8px; letter-spacing: 0.5px; text-transform: uppercase; flex-shrink: 0; background: ${isLeader ? 'linear-gradient(135deg, #f59e0b, #d97706)' : (isActive ? '#dcfce7' : '#fee2e2')}; color: ${isLeader ? '#ffffff' : (isActive ? '#15803d' : '#b91c1c')}; border: 1.5px solid ${isLeader ? '#b45309' : (isActive ? '#86efac' : '#fca5a5')}; box-shadow: ${isLeader ? '0 2px 8px rgba(245, 158, 11, 0.4)' : 'none'};">
                             ${isLeader ? '👑 LEADER' : (isActive ? 'ACTIVE' : 'FOLDED')}
                         </span>
                     </div>
 
                     <!-- Spacious Bid Buttons with Generous Touch Targets -->
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                        <button class="glass-btn" style="padding: 10px 0; min-height: 42px; font-size: 0.92rem; font-weight: 900; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: 1px solid #3b82f6; border-radius: 8px; cursor: pointer; transition: all 0.2s; ${(!isActive || p.cash < next10) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 2px;">
+                        <button class="glass-btn auc-bid-btn" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: 1.5px solid #3b82f6; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28); ${(!isActive || p.cash < next10) ? 'opacity:0.3; cursor:not-allowed; box-shadow:none;' : ''}" 
                             ${(!isActive || p.cash < next10) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 10)">+$10</button>
-                        <button class="glass-btn" style="padding: 10px 0; min-height: 42px; font-size: 0.92rem; font-weight: 900; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: 1px solid #8b5cf6; border-radius: 8px; cursor: pointer; transition: all 0.2s; ${(!isActive || p.cash < next50) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn auc-bid-btn" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: 1.5px solid #8b5cf6; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.28); ${(!isActive || p.cash < next50) ? 'opacity:0.3; cursor:not-allowed; box-shadow:none;' : ''}" 
                             ${(!isActive || p.cash < next50) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 50)">+$50</button>
-                        <button class="glass-btn" style="padding: 10px 0; min-height: 42px; font-size: 0.92rem; font-weight: 900; background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: 1px solid #38bdf8; border-radius: 8px; cursor: pointer; transition: all 0.2s; ${(!isActive || p.cash < next100) ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn auc-bid-btn" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; border: 1.5px solid #38bdf8; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.28); ${(!isActive || p.cash < next100) ? 'opacity:0.3; cursor:not-allowed; box-shadow:none;' : ''}" 
                             ${(!isActive || p.cash < next100) ? 'disabled' : ''} 
                             onclick="window.bidForPlayer('${p.uuid}', 100)">+$100</button>
                     </div>
 
                     <!-- Distinct Separate Fold / Pass Button to completely prevent misclicks -->
                     <div>
-                        <button class="glass-btn" style="width: 100%; padding: 8px 0; min-height: 34px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.5px; background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 8px; cursor: pointer; transition: all 0.2s; ${!isActive ? 'opacity:0.35; cursor:not-allowed;' : ''}" 
+                        <button class="glass-btn auc-fold-btn" style="${!isActive ? 'opacity:0.3; cursor:not-allowed;' : ''}" 
                             ${!isActive ? 'disabled' : ''} 
                             onclick="window.foldForPlayer('${p.uuid}')">✕ FOLD AUCTION</button>
                     </div>
@@ -1687,51 +1769,238 @@ function checkPendingActions(state) {
     }
 }
 
-function spawnCashAnimation(uuid, diff) {
-    if (!diff || diff <= 0) return;
+function updateBankPanel(state) {
+    if (!state) return;
+    const bankPanel = document.getElementById('bank-panel');
+    if (!bankPanel) return;
+
+    const purchaseable = boardData.filter(t => t.type === 'property' || t.type === 'station' || t.type === 'utility');
+    const totalBuyable = purchaseable.length; // 28
+    const ownedCount = Object.keys(state.properties || {}).filter(idx => {
+        const t = boardData[parseInt(idx)];
+        return t && (t.type === 'property' || t.type === 'station' || t.type === 'utility');
+    }).length;
+
+    const unsold = Math.max(0, totalBuyable - ownedCount);
+    const pct = Math.round((ownedCount / totalBuyable) * 100);
+
+    const counterEl = document.getElementById('bank-unsold-counter');
+    const barEl = document.getElementById('bank-unsold-bar');
+    const badgeEl = document.getElementById('bank-reserve-badge');
+    const tickerEl = document.getElementById('bank-tx-ticker');
+
+    if (counterEl) {
+        if (unsold === 0) {
+            counterEl.innerHTML = `<span style="color: #16a34a; font-weight: 900;">0 / ${totalBuyable} (All Sold!)</span>`;
+        } else {
+            counterEl.innerHTML = `<span style="color: #ef4444; font-weight: 900;">${unsold}</span> / ${totalBuyable} with Bank`;
+        }
+    }
+
+    if (barEl) {
+        barEl.style.width = pct + '%';
+        barEl.style.background = (unsold === 0) 
+            ? 'linear-gradient(90deg, #10b981, #059669)' 
+            : 'linear-gradient(90deg, #0284c7, #10b981)';
+    }
+
+    if (badgeEl) {
+        if (unsold === 0) {
+            badgeEl.textContent = '🔓 Trade Ready';
+            badgeEl.style.background = '#dcfce7';
+            badgeEl.style.color = '#15803d';
+            badgeEl.style.borderColor = '#86efac';
+        } else {
+            badgeEl.textContent = `🔒 ${unsold} Left`;
+            badgeEl.style.background = '#fee2e2';
+            badgeEl.style.color = '#b91c1c';
+            badgeEl.style.borderColor = '#fca5a5';
+        }
+    }
+
+    if (tickerEl && !tickerEl.dataset.hasActiveTx) {
+        if (unsold === 0) {
+            tickerEl.innerHTML = '🔓 All properties sold! Trading is UNLOCKED.';
+            tickerEl.style.color = '#15803d';
+        } else {
+            tickerEl.innerHTML = `🔒 Trade Locked &bull; ${unsold} bank properties left`;
+            tickerEl.style.color = '#64748b';
+        }
+    }
+}
+
+let bankTickerResetTimer = null;
+
+function animateCashTransfer(from, to, amount, reason) {
+    if (!amount || amount <= 0) return;
     try {
         if (window.SoundFX && window.SoundFX.cash) window.SoundFX.cash();
 
-        let posX = window.innerWidth / 2;
-        let posY = window.innerHeight / 2;
+        // 1. Determine Start Position (from)
+        let startX = window.innerWidth / 2;
+        let startY = window.innerHeight / 2;
+        let fromPlayerName = 'User';
 
-        const tokenEl = document.getElementById('token-' + uuid);
-        if (tokenEl) {
-            const rect = tokenEl.getBoundingClientRect();
-            posX = rect.left + rect.width / 2;
-            posY = rect.top;
-        } else {
-            const playerCard = document.querySelector(`.player-card[data-uuid="${uuid}"]`);
-            if (playerCard) {
-                const rect = playerCard.getBoundingClientRect();
-                posX = rect.left + rect.width / 2;
-                posY = rect.top + rect.height / 2;
+        if (from === 'bank') {
+            const bankEl = document.getElementById('bank-panel');
+            if (bankEl) {
+                const r = bankEl.getBoundingClientRect();
+                startX = r.left + r.width / 2;
+                startY = r.top + r.height / 2;
+            } else {
+                startX = window.innerWidth - 150;
+                startY = 120;
             }
+            fromPlayerName = 'Bank';
+        } else {
+            let foundEl = null;
+            const tokenEl = document.getElementById('token-' + from);
+            if (tokenEl && tokenEl.offsetWidth > 0) {
+                foundEl = tokenEl;
+            } else {
+                const playerCard = document.querySelector(`.player-card[data-uuid="${from}"]`);
+                if (playerCard && playerCard.offsetWidth > 0) {
+                    foundEl = playerCard;
+                }
+            }
+            if (foundEl) {
+                const r = foundEl.getBoundingClientRect();
+                startX = r.left + r.width / 2;
+                startY = r.top + r.height / 2;
+            }
+            const p = window.currentGameStateObj?.players?.[from];
+            if (p) fromPlayerName = p.username;
         }
+
+        // 2. Determine End Position (to)
+        let endX = window.innerWidth / 2;
+        let endY = window.innerHeight / 2;
+        let toPlayerName = 'User';
+
+        if (to === 'bank') {
+            const bankEl = document.getElementById('bank-panel');
+            if (bankEl) {
+                const r = bankEl.getBoundingClientRect();
+                endX = r.left + r.width / 2;
+                endY = r.top + r.height / 2;
+            } else {
+                endX = window.innerWidth - 150;
+                endY = 120;
+            }
+            toPlayerName = 'Bank';
+        } else {
+            let foundEl = null;
+            const tokenEl = document.getElementById('token-' + to);
+            if (tokenEl && tokenEl.offsetWidth > 0) {
+                foundEl = tokenEl;
+            } else {
+                const playerCard = document.querySelector(`.player-card[data-uuid="${to}"]`);
+                if (playerCard && playerCard.offsetWidth > 0) {
+                    foundEl = playerCard;
+                }
+            }
+            if (foundEl) {
+                const r = foundEl.getBoundingClientRect();
+                endX = r.left + r.width / 2;
+                endY = r.top + r.height / 2;
+            }
+            const p = window.currentGameStateObj?.players?.[to];
+            if (p) toPlayerName = p.username;
+        }
+
+        // 3. Floating Amount Text Bubble
+        const isFromBank = (from === 'bank');
+        const isToBank = (to === 'bank');
 
         const bubble = document.createElement('div');
         bubble.className = 'floating-cash-bubble';
-        bubble.innerHTML = `<span>💵</span> <span>+$${Number(diff).toLocaleString()}</span>`;
-        bubble.style.left = posX + 'px';
-        bubble.style.top = posY + 'px';
+        if (isFromBank) {
+            bubble.style.background = '#dcfce7';
+            bubble.style.color = '#15803d';
+            bubble.style.border = '1.5px solid #86efac';
+            bubble.innerHTML = `<span>🏛️ ➔ 💵</span> <span>+$${Number(amount).toLocaleString()}</span>`;
+            bubble.style.left = Math.max(10, Math.min(window.innerWidth - 180, endX - 60)) + 'px';
+            bubble.style.top = Math.max(10, endY - 24) + 'px';
+        } else if (isToBank) {
+            bubble.style.background = '#fee2e2';
+            bubble.style.color = '#b91c1c';
+            bubble.style.border = '1.5px solid #fca5a5';
+            bubble.innerHTML = `<span>💵 ➔ 🏛️</span> <span>-$${Number(amount).toLocaleString()}</span>`;
+            bubble.style.left = Math.max(10, Math.min(window.innerWidth - 180, startX - 60)) + 'px';
+            bubble.style.top = Math.max(10, startY - 24) + 'px';
+        } else {
+            // Player to player
+            bubble.style.background = '#fef3c7';
+            bubble.style.color = '#b45309';
+            bubble.style.border = '1.5px solid #fcd34d';
+            bubble.innerHTML = `<span>💸</span> <span>$${Number(amount).toLocaleString()}</span>`;
+            bubble.style.left = Math.max(10, Math.min(window.innerWidth - 180, (startX + endX) / 2 - 60)) + 'px';
+            bubble.style.top = Math.max(10, (startY + endY) / 2 - 24) + 'px';
+        }
         document.body.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 1800);
 
-        for (let i = 0; i < 4; i++) {
-            const bill = document.createElement('div');
-            bill.className = 'floating-bill';
-            bill.textContent = (i % 2 === 0) ? '💵' : '💰';
-            const offsetX = (Math.random() - 0.5) * 80;
-            const offsetY = (Math.random() - 0.5) * 40;
-            bill.style.left = (posX + offsetX) + 'px';
-            bill.style.top = (posY + offsetY) + 'px';
-            document.body.appendChild(bill);
-            setTimeout(() => bill.remove(), 2000);
+        // 4. Spawn 5 flying currency particles flying along vector
+        const numParticles = 6;
+        for (let i = 0; i < numParticles; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'flying-cash-particle';
+            particle.textContent = (i % 2 === 0) ? '💵' : ((i === 1) ? '💸' : '💰');
+            
+            const jitterStartX = startX + (Math.random() - 0.5) * 24;
+            const jitterStartY = startY + (Math.random() - 0.5) * 24;
+            particle.style.left = jitterStartX + 'px';
+            particle.style.top = jitterStartY + 'px';
+            particle.style.opacity = '1';
+            particle.style.transform = 'scale(1)';
+            document.body.appendChild(particle);
+
+            const delay = i * 45;
+            setTimeout(() => {
+                const jitterEndX = endX + (Math.random() - 0.5) * 30;
+                const jitterEndY = endY + (Math.random() - 0.5) * 30;
+                const deltaX = jitterEndX - jitterStartX;
+                const deltaY = jitterEndY - jitterStartY;
+
+                particle.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.6)`;
+                particle.style.opacity = '0';
+            }, delay + 20);
+
+            setTimeout(() => particle.remove(), 1000 + delay);
         }
 
-        setTimeout(() => bubble.remove(), 1850);
+        // 5. Update Bank Panel ticker and trigger pulse
+        const bankPanel = document.getElementById('bank-panel');
+        if (bankPanel && (isFromBank || isToBank)) {
+            bankPanel.classList.remove('bank-pulse');
+            void bankPanel.offsetWidth; // trigger reflow
+            bankPanel.classList.add('bank-pulse');
+
+            const tickerEl = document.getElementById('bank-tx-ticker');
+            if (tickerEl) {
+                tickerEl.dataset.hasActiveTx = 'true';
+                if (isFromBank) {
+                    tickerEl.innerHTML = `📤 <strong>Bank ➔ ${toPlayerName}:</strong> +$${Number(amount).toLocaleString()} <span style="color:#16a34a;">(${reason || 'Payout'})</span>`;
+                    tickerEl.style.color = '#15803d';
+                } else if (isToBank) {
+                    tickerEl.innerHTML = `📥 <strong>${fromPlayerName} ➔ Bank:</strong> -$${Number(amount).toLocaleString()} <span style="color:#ef4444;">(${reason || 'Payment'})</span>`;
+                    tickerEl.style.color = '#b91c1c';
+                }
+
+                if (bankTickerResetTimer) clearTimeout(bankTickerResetTimer);
+                bankTickerResetTimer = setTimeout(() => {
+                    delete tickerEl.dataset.hasActiveTx;
+                    if (window.currentGameStateObj) updateBankPanel(window.currentGameStateObj);
+                }, 3500);
+            }
+        }
     } catch (e) {
-        console.warn('Cash animation error:', e);
+        console.warn('Cash transfer animation error:', e);
     }
+}
+
+function spawnCashAnimation(uuid, diff) {
+    animateCashTransfer('bank', uuid, diff, 'Reward / Payout');
 }
 
 async function processStateQueue() {
@@ -1744,19 +2013,40 @@ async function processStateQueue() {
         // Wait for any 3D dice roll to settle before moving tokens
         await diceAnimationPromise;
 
-        // Detect cash gains for any player (human or bot) and trigger animations!
+        // Detect cash gains and losses for any player (human or bot) and trigger animations!
         if (currentGameState && currentGameState.players && state.players && state.status !== 'LOBBY') {
+            const gainers = [];
+            const losers = [];
+
             Object.keys(state.players).forEach(uuid => {
-                const oldCash = currentGameState.players[uuid]?.cash || 0;
-                const newCash = state.players[uuid]?.cash || 0;
-                if (newCash > oldCash) {
-                    spawnCashAnimation(uuid, newCash - oldCash);
+                const oldCash = Math.round(currentGameState.players[uuid]?.cash || 0);
+                const newCash = Math.round(state.players[uuid]?.cash || 0);
+                const diff = newCash - oldCash;
+                if (diff > 0) {
+                    gainers.push({ uuid, amount: diff, name: state.players[uuid]?.username || 'Player' });
+                } else if (diff < 0) {
+                    losers.push({ uuid, amount: -diff, name: state.players[uuid]?.username || 'Player' });
                 }
             });
+
+            // If exactly 1 gainer and 1 loser with same amount -> rent / direct player transfer
+            if (gainers.length === 1 && losers.length === 1 && gainers[0].amount === losers[0].amount) {
+                animateCashTransfer(losers[0].uuid, gainers[0].uuid, gainers[0].amount, 'Rent / Payment');
+            } else {
+                // Players paying bank (taxes, purchasing property/houses, jail fine, debt)
+                losers.forEach(l => {
+                    animateCashTransfer(l.uuid, 'bank', l.amount, 'Bank Payment / Property');
+                });
+                // Players receiving money from bank (GO payout, mortgage, chance/chest reward)
+                gainers.forEach(g => {
+                    animateCashTransfer('bank', g.uuid, g.amount, 'Bank Payout / GO');
+                });
+            }
         }
 
         currentGameState = state;
         window.currentGameStateObj = state;
+        updateBankPanel(state);
         renderPlayersList(state);
 
         await animateHopsForState(state);
@@ -1826,6 +2116,7 @@ function updateDrawnCardDisplay(card, playerName) {
 socket.on('gameState', (state) => {
     stateQueue.push(state);
     processStateQueue();
+    updateBankPanel(state);
 });
 
 socket.on('diceRolled', (data) => {
@@ -1915,11 +2206,74 @@ socket.on('cardDrawn', (data) => {
 });
 // ====== TRADE & NEGOTIATION LOGIC ======
 
+function checkTradeAvailability(state) {
+    if (!state) return { available: false, unsold: 28, totalBuyable: 28, ownedCount: 0, purchaseable: [] };
+    const purchaseable = (typeof boardData !== 'undefined' ? boardData : []).filter(t => t.type === 'property' || t.type === 'station' || t.type === 'utility');
+    const totalBuyable = purchaseable.length || 28;
+    const ownedBuyable = Object.keys(state.properties || {}).filter(idx => {
+        const t = boardData[parseInt(idx)];
+        return t && (t.type === 'property' || t.type === 'station' || t.type === 'utility');
+    });
+    const ownedCount = ownedBuyable.length;
+    const unsold = Math.max(0, totalBuyable - ownedCount);
+    return {
+        available: unsold === 0,
+        unsold,
+        totalBuyable,
+        ownedCount,
+        purchaseable
+    };
+}
+
+function showTradeLockedModal(tradeStatus, state) {
+    const { unsold, totalBuyable, ownedCount, purchaseable } = tradeStatus;
+    const streetsUnsold = purchaseable.filter(t => t.type === 'property' && (!state || !state.properties || !state.properties[t.index])).length;
+    const stationsUnsold = purchaseable.filter(t => t.type === 'station' && (!state || !state.properties || !state.properties[t.index])).length;
+    const utilitiesUnsold = purchaseable.filter(t => t.type === 'utility' && (!state || !state.properties || !state.properties[t.index])).length;
+    const pct = Math.round((ownedCount / totalBuyable) * 100);
+
+    Swal.fire({
+        title: '🔒 Trade Not Available',
+        html: `
+            <div style="font-family: inherit; text-align: center; color: #1e293b; padding: 6px 0;">
+                <div style="font-size: 2.8rem; margin-bottom: 8px;">🏦</div>
+                <p style="font-size: 0.95rem; color: #475569; margin-bottom: 14px; line-height: 1.5;">
+                    Trade negotiations are <strong>not available</strong> until all properties are purchased from the Central Bank.
+                </p>
+
+                <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;">
+                    <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Properties Still Owned by Bank</div>
+                    <div style="font-size: 2rem; font-weight: 900; color: #ef4444; margin-bottom: 4px;">
+                        ${unsold} <span style="font-size: 1rem; color: #64748b; font-weight: 700;">/ ${totalBuyable}</span>
+                    </div>
+
+                    <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 8px 0;">
+                        <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #0284c7, #10b981); border-radius: 999px;"></div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b; font-weight: 700;">
+                        ${ownedCount} sold to players &bull; ${unsold} remaining with Bank
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: center; gap: 8px; font-size: 0.78rem; font-weight: 800; flex-wrap: wrap;">
+                    <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 999px;">🏠 Streets: ${streetsUnsold}</span>
+                    <span style="background: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: 999px;">🚂 Stations: ${stationsUnsold}</span>
+                    <span style="background: #f3e8ff; color: #7e22ce; padding: 4px 10px; border-radius: 999px;">⚡ Utilities: ${utilitiesUnsold}</span>
+                </div>
+            </div>
+        `,
+        confirmButtonText: 'Understood',
+        confirmButtonColor: '#0284c7',
+        customClass: { popup: 'glass-panel' }
+    });
+}
+
 function initTradeModal() {
     const tradeButtons = document.querySelectorAll('#open-trade-btn, .open-trade-btn');
     const closeTradeBtn = document.getElementById('close-trade-btn');
     const cancelTradeBtn = document.getElementById('cancel-trade-btn');
     const sendTradeBtn = document.getElementById('send-trade-btn');
+    const proposerSelect = document.getElementById('trade-proposer-select');
     const partnerSelect = document.getElementById('trade-partner-select');
     const overlay = document.getElementById('trade-overlay');
     const statusBox = document.getElementById('trade-status-box');
@@ -1929,17 +2283,9 @@ function initTradeModal() {
             const state = window.currentGameStateObj;
             if (!state) return;
 
-            const purchaseable = boardData.filter(t => t.type === 'property' || t.type === 'station' || t.type === 'utility');
-            const unsold = purchaseable.filter(t => !state.properties[boardData.indexOf(t)]).length;
-
-            if (unsold > 0) {
-                Swal.fire({
-                    title: 'Negotiations Locked',
-                    html: `Property negotiations and trading unlock only when <strong>all properties on the board have been purchased from the bank</strong>!<br><br>Remaining unsold properties: <strong style="color: #ef4444; font-size: 1.25rem;">${unsold}</strong>`,
-                    icon: 'info',
-                    confirmButtonColor: '#2563eb',
-                    customClass: { popup: 'glass-panel' }
-                });
+            const tradeStatus = checkTradeAvailability(state);
+            if (!tradeStatus.available) {
+                showTradeLockedModal(tradeStatus, state);
                 return;
             }
 
@@ -1950,6 +2296,12 @@ function initTradeModal() {
     if (closeTradeBtn) closeTradeBtn.onclick = () => overlay.classList.add('hidden');
     if (cancelTradeBtn) cancelTradeBtn.onclick = () => overlay.classList.add('hidden');
 
+    if (proposerSelect) {
+        proposerSelect.onchange = () => {
+            updateTradePartnerOptions();
+        };
+    }
+
     if (partnerSelect) {
         partnerSelect.onchange = () => {
             populateTradeProps();
@@ -1958,9 +2310,10 @@ function initTradeModal() {
 
     if (sendTradeBtn) {
         sendTradeBtn.onclick = () => {
-            const partnerUuid = partnerSelect.value;
-            if (!partnerUuid) {
-                Swal.fire('Notice', 'Please select a player or bot to negotiate with.', 'warning');
+            const proposerUuid = proposerSelect ? proposerSelect.value : myUuid;
+            const partnerUuid = partnerSelect ? partnerSelect.value : null;
+            if (!proposerUuid || !partnerUuid) {
+                Swal.fire('Notice', 'Please select both the proposing player and trading partner.', 'warning');
                 return;
             }
 
@@ -1984,6 +2337,7 @@ function initTradeModal() {
             statusBox.textContent = 'Proposing deal to partner...';
 
             socket.emit('proposeTrade', {
+                proposerUuid,
                 targetUuid: partnerUuid,
                 offerProps,
                 offerCash,
@@ -1994,45 +2348,121 @@ function initTradeModal() {
     }
 }
 
-function openTradeDialog() {
+function openTradeDialog(initialProposerUuid) {
     const state = window.currentGameStateObj;
     if (!state) return;
-    const partnerSelect = document.getElementById('trade-partner-select');
-    const overlay = document.getElementById('trade-overlay');
-    const statusBox = document.getElementById('trade-status-box');
 
-    partnerSelect.innerHTML = '';
-    const otherPlayers = state.turnOrder
-        .filter(id => id !== myUuid && state.players[id] && !state.players[id].debtState);
-
-    if (otherPlayers.length === 0) {
-        Swal.fire('Notice', 'No active players available to trade with.', 'info');
+    const tradeStatus = checkTradeAvailability(state);
+    if (!tradeStatus.available) {
+        showTradeLockedModal(tradeStatus, state);
         return;
     }
 
-    otherPlayers.forEach(id => {
+    const proposerSelect = document.getElementById('trade-proposer-select');
+    const overlay = document.getElementById('trade-overlay');
+
+    // Controllable players:
+    // If state.host === myUuid: can initiate trade on behalf of ANY active human/local player on this device
+    // If remote player: can initiate trade for myUuid or local players hosted by myUuid
+    const isHost = (state.host === myUuid);
+    const eligibleProposers = state.turnOrder.filter(id => {
         const p = state.players[id];
-        const opt = document.createElement('option');
-        opt.value = id;
-        opt.textContent = `${p.username} (${p.isBot ? 'Bot' : 'Player'}) - $${Math.round(p.cash).toLocaleString()}`;
-        partnerSelect.appendChild(opt);
+        if (!p || p.debtState || p.isBot) return false;
+        return (id === myUuid) || (p.isLocal && (p.hostId === myUuid || !p.hostId || isHost)) || isHost;
     });
 
-    statusBox.classList.add('hidden');
-    statusBox.textContent = '';
-    document.getElementById('trade-my-cash').value = '0';
-    document.getElementById('trade-partner-cash').value = '0';
+    if (eligibleProposers.length === 0) {
+        Swal.fire('Notice', 'No active players available to initiate a trade.', 'info');
+        return;
+    }
+
+    if (proposerSelect) {
+        proposerSelect.innerHTML = '';
+        eligibleProposers.forEach(id => {
+            const p = state.players[id];
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = `${p.username} ($${Math.round(p.cash).toLocaleString()})`;
+            proposerSelect.appendChild(opt);
+        });
+
+        const currentTurnUuid = state.turnOrder[state.currentTurnIndex];
+        if (initialProposerUuid && eligibleProposers.includes(initialProposerUuid)) {
+            proposerSelect.value = initialProposerUuid;
+        } else if (eligibleProposers.includes(currentTurnUuid)) {
+            proposerSelect.value = currentTurnUuid;
+        } else if (eligibleProposers.includes(myUuid)) {
+            proposerSelect.value = myUuid;
+        } else {
+            proposerSelect.value = eligibleProposers[0];
+        }
+    }
+
+    updateTradePartnerOptions();
+    overlay.classList.remove('hidden');
+}
+
+function updateTradePartnerOptions() {
+    const state = window.currentGameStateObj;
+    if (!state) return;
+    const proposerSelect = document.getElementById('trade-proposer-select');
+    const partnerSelect = document.getElementById('trade-partner-select');
+    const statusBox = document.getElementById('trade-status-box');
+
+    const selectedProposerUuid = proposerSelect ? proposerSelect.value : myUuid;
+
+    if (partnerSelect) {
+        partnerSelect.innerHTML = '';
+        const otherPlayers = state.turnOrder
+            .filter(id => id !== selectedProposerUuid && state.players[id] && !state.players[id].debtState);
+
+        if (otherPlayers.length === 0) {
+            partnerSelect.innerHTML = '<option value="">No other players available</option>';
+        } else {
+            otherPlayers.forEach(id => {
+                const p = state.players[id];
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = `${p.username} (${p.isBot ? 'Bot 🤖' : 'Player'}) - $${Math.round(p.cash).toLocaleString()}`;
+                partnerSelect.appendChild(opt);
+            });
+        }
+    }
+
+    if (statusBox) {
+        statusBox.classList.add('hidden');
+        statusBox.textContent = '';
+    }
+    const myCashInput = document.getElementById('trade-my-cash');
+    const partnerCashInput = document.getElementById('trade-partner-cash');
+    if (myCashInput) myCashInput.value = '0';
+    if (partnerCashInput) partnerCashInput.value = '0';
 
     populateTradeProps();
-    overlay.classList.remove('hidden');
 }
 
 function populateTradeProps() {
     const state = window.currentGameStateObj;
     if (!state) return;
-    const partnerUuid = document.getElementById('trade-partner-select').value;
+    const proposerUuid = document.getElementById('trade-proposer-select')?.value || myUuid;
+    const partnerUuid = document.getElementById('trade-partner-select')?.value;
     const myPropsEl = document.getElementById('trade-my-props');
     const partnerPropsEl = document.getElementById('trade-partner-props');
+
+    if (!myPropsEl || !partnerPropsEl) return;
+
+    const proposer = state.players[proposerUuid];
+    const partner = state.players[partnerUuid];
+
+    const propHeading = document.getElementById('trade-proposer-heading');
+    const partnerHeading = document.getElementById('trade-partner-heading');
+    if (propHeading) propHeading.textContent = `${proposer ? proposer.username : 'Proposer'}'s Offer (Gives)`;
+    if (partnerHeading) partnerHeading.textContent = `${partner ? partner.username : 'Partner'}'s Offer (Receives)`;
+
+    const propCashLabel = document.getElementById('trade-proposer-cash-label');
+    const partnerCashLabel = document.getElementById('trade-partner-cash-label');
+    if (propCashLabel) propCashLabel.textContent = `Cash to Offer ($) [Max: $${Math.round(proposer ? proposer.cash : 0).toLocaleString()}]:`;
+    if (partnerCashLabel) partnerCashLabel.textContent = `Cash to Request ($) [Max: $${Math.round(partner ? partner.cash : 0).toLocaleString()}]:`;
 
     myPropsEl.innerHTML = '';
     partnerPropsEl.innerHTML = '';
@@ -2044,9 +2474,9 @@ function populateTradeProps() {
         const idx = parseInt(idxStr);
         const tile = boardData[idx];
         if (!tile) return;
-        if (prop.owner === myUuid) {
+        if (proposerUuid && prop.owner === proposerUuid) {
             myProps.push({ idx, tile, prop });
-        } else if (prop.owner === partnerUuid) {
+        } else if (partnerUuid && prop.owner === partnerUuid) {
             partnerProps.push({ idx, tile, prop });
         }
     });
@@ -2129,7 +2559,7 @@ socket.on('tradeStatus', (data) => {
 socket.on('tradeProposed', (data) => {
     const state = window.currentGameStateObj;
     const targetPlayer = state && state.players ? state.players[data.targetUuid] : null;
-    const isTargetMeOrMyLocal = (data.targetUuid === myUuid) || (targetPlayer && targetPlayer.isLocal && (targetPlayer.hostId === myUuid || !targetPlayer.hostId || state.host === myUuid));
+    const isTargetMeOrMyLocal = (data.targetUuid === myUuid) || (targetPlayer && targetPlayer.isLocal && (targetPlayer.hostId === myUuid || !targetPlayer.hostId || state.host === myUuid)) || (state && state.host === myUuid);
     if (!isTargetMeOrMyLocal) return;
 
     window.currentIncomingTrade = data;

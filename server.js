@@ -2662,23 +2662,62 @@ monopolyIo.on('connection', (socket) => {
           return;
       }
 
-      // Sell houses first
-      let ownedPropsWithHouses = Object.keys(monopolyState.properties)
-          .map(Number)
-          .filter(idx => monopolyState.properties[idx].owner === botUuid && monopolyState.properties[idx].houses > 0);
-      
-      while (bot.cash < debt && ownedPropsWithHouses.length > 0) {
-          const idx = ownedPropsWithHouses[0];
-          const p = monopolyState.properties[idx];
-          const t = boardData[idx];
+      // Sell houses first, respecting the Even Selling Rule:
+      // In any color group, you can ONLY sell from a property with the maximum houses in that group!
+      function getBotPropertyToSellEvenly(bUuid) {
+          const colorGroups = {};
+          boardData.forEach((tile, idx) => {
+              if (tile.type === 'property' && tile.color) {
+                  if (!colorGroups[tile.color]) colorGroups[tile.color] = [];
+                  colorGroups[tile.color].push({ tile, idx });
+              }
+          });
+
+          let bestCandidate = null;
+          let highestCost = -1;
+
+          for (const color of Object.keys(colorGroups)) {
+              const group = colorGroups[color];
+              const botPropsInGroup = group.filter(item => {
+                  const p = monopolyState.properties[item.idx];
+                  return p && p.owner === bUuid && (p.houses || 0) > 0;
+              });
+              if (botPropsInGroup.length === 0) continue;
+
+              const houseCounts = group.map(item => monopolyState.properties[item.idx]?.houses || 0);
+              const maxHouses = Math.max(...houseCounts);
+              if (maxHouses <= 0) continue;
+
+              // Only properties owned by the bot that have houses === maxHouses can have a house sold!
+              const eligible = botPropsInGroup.filter(item => {
+                  const p = monopolyState.properties[item.idx];
+                  return (p.houses || 0) === maxHouses;
+              });
+
+              for (const cand of eligible) {
+                  const cost = cand.tile.houseCost || 100;
+                  if (cost > highestCost) {
+                      highestCost = cost;
+                      bestCandidate = cand;
+                  }
+              }
+          }
+          return bestCandidate;
+      }
+
+      while (bot.cash < debt) {
+          const candidate = getBotPropertyToSellEvenly(botUuid);
+          if (!candidate) break;
+
+          const p = monopolyState.properties[candidate.idx];
+          const t = candidate.tile;
           const refund = Math.floor((t.houseCost || 100) / 2);
+          const wasHotel = (p.houses === 5);
           p.houses -= 1;
           bot.cash += refund;
           bot.cash = Math.round(bot.cash);
-          monopolyIo.emit('systemMessage', `🤖 ${bot.username} sold a house on ${t.name} for $${refund} to pay debt.`);
-          ownedPropsWithHouses = Object.keys(monopolyState.properties)
-              .map(Number)
-              .filter(i => monopolyState.properties[i].owner === botUuid && monopolyState.properties[i].houses > 0);
+          const soldType = wasHotel ? 'a hotel (converted to 4 houses)' : 'a house';
+          monopolyIo.emit('systemMessage', `🤖 ${bot.username} sold ${soldType} on ${t.name} for $${refund} to pay debt.`);
       }
 
       // Mortgage unmortgaged properties
@@ -2836,7 +2875,20 @@ monopolyIo.on('connection', (socket) => {
           return socket.emit('errorMsg', "Invalid trade participants.");
       }
 
-      const canControlProposer = (socket.uuid === proposerUuid) || (proposer.isLocal && (proposer.hostId === socket.uuid || !proposer.hostId || monopolyState.host === socket.uuid));
+      // Trading is locked until all 28 properties are purchased from the Bank
+      const buyableTiles = boardData.filter(t => t.type === 'property' || t.type === 'station' || t.type === 'utility');
+      const ownedCount = Object.keys(monopolyState.properties || {}).filter(idx => {
+          const t = boardData[parseInt(idx)];
+          return t && (t.type === 'property' || t.type === 'station' || t.type === 'utility');
+      }).length;
+      if (ownedCount < buyableTiles.length) {
+          const remaining = buyableTiles.length - ownedCount;
+          return socket.emit('errorMsg', `Trading is not available until all properties are purchased from the Bank (${remaining} still owned by Bank).`);
+      }
+
+      const canControlProposer = (socket.uuid === proposerUuid) || 
+          (proposer.isLocal && (proposer.hostId === socket.uuid || !proposer.hostId || monopolyState.host === socket.uuid)) ||
+          (monopolyState.host === socket.uuid);
       if (!canControlProposer) {
           return socket.emit('errorMsg', "You cannot trade on behalf of this player.");
       }
@@ -2894,7 +2946,9 @@ monopolyIo.on('connection', (socket) => {
               });
           }
       } else {
-          const isLocalTrade = (socket.uuid === targetUuid) || (target.isLocal && (target.hostId === socket.uuid || !target.hostId || monopolyState.host === socket.uuid));
+          const isLocalTrade = (socket.uuid === targetUuid) || 
+              (target.isLocal && (target.hostId === socket.uuid || !target.hostId || monopolyState.host === socket.uuid)) ||
+              (monopolyState.host === socket.uuid);
 
           const tradeId = 'trade_' + Date.now();
           monopolyState.activeTrades[tradeId] = {
